@@ -1,0 +1,162 @@
+module OMF where
+
+import Control.Monad (replicateM)
+
+import Data.Binary.Strict.Get
+import qualified Data.ByteString as B
+import Data.Char
+import Data.Maybe
+import Data.Word
+
+{-
+
+
+ @todo
+    • Add support for 16-bit and 32-bit chunks (depends on 'RecordType' value)
+
+-}
+
+data RecordType = THEADR
+                | LHEADR
+                | COMENT
+                | MODEND
+                | EXTDEF
+                | PUBDEF
+                | LINNUM
+                | LNAMES
+                | SEGDEF
+                | GRPDEF
+                | FIXUPP
+                | LEDATA
+                | LIDATA
+                | COMDEF
+                | BAKPAT
+                | LEXTDEF
+                | LPUBDEF
+                | LCOMDEF
+                | CEXTDEF
+                | COMDAT
+                | LINSYM
+                | ALIAS
+                | NBKPAT
+                | LLNAMES
+                | VERNUM
+                | VENDEXT
+                | LIBRARY_HEADER
+                | LIBRARY_END
+                deriving (Show, Eq)
+
+type RawContents = [Word8]
+
+data Record = Record { rtype    :: RecordType
+                     , len      :: Int
+                     , contents :: RawContents
+                     , crc      :: Int
+                     }
+                     deriving (Show)
+
+data PUBDEF_record = PUBDEF_record { baseGrpIdx :: Word8
+                                   , baseSegIdx :: Word8
+                                   , baseFrame  :: Maybe Word8
+                                   , pubName    :: String
+                                   , pubOffset  :: Word8
+                                   }
+                                   deriving (Show)
+
+data LEDATA_record = LEDATA_record { segmentIdx   :: Word8
+                                   , enumDataOffs :: Word16
+                                   , dataBytes    :: [Word8]
+                                   }
+                                   deriving (Show)
+
+getType td | td == 0x80 = THEADR
+           | td == 0x82 = LHEADR
+           | td == 0x88 = COMENT
+           | td == 0x8A || td == 0x8B = MODEND
+           | td == 0x8C = EXTDEF
+           | td == 0x90 || td == 0x91 = PUBDEF
+           | td == 0x94 || td == 0x95 = LINNUM
+           | td == 0x96 = LNAMES
+           | td == 0x98 || td == 0x99 = SEGDEF
+           | td == 0x9A = GRPDEF
+           | td == 0x9C || td == 0x9D = FIXUPP
+           | td == 0xA0 || td == 0xA1 = LEDATA
+           | td == 0xA2 || td == 0xA3 = LIDATA
+           | td == 0xB0 = COMDEF
+           | otherwise  = error "OMF parse: unexpected record type"
+
+-- @todo add CRC verification
+parseOMF :: Get [Record]
+parseOMF = do
+    empty <- isEmpty
+    if empty
+        then return []
+        else do
+            typeData   <- getWord8
+            lengthData <- getWord16le
+
+            let
+                t = getType typeData
+                l = fromIntegral lengthData - 1
+
+            contentsData <- replicateM l getWord8
+            crcData <- getWord8
+
+            let
+                d = contentsData
+                c = fromIntegral crcData
+
+            rest <- parseOMF
+            return $ (Record t l d c) : rest
+
+findRecords :: RecordType -> [Record] ->  [Record]
+findRecords r = filter ((==) r . rtype)
+
+bytesToString :: [Word8] -> String
+bytesToString = map (chr . fromIntegral)
+
+parsePUBDEF :: Record -> PUBDEF_record
+parsePUBDEF r = PUBDEF_record gi si bf n o
+        where
+            c  = contents r
+            gi = c !! 0
+            si = c !! 1
+            bf = if si == 0
+                    then Just (c !! 2)
+                    else Nothing
+            -- @todo The record may contain more that one string
+            -- need to handle this case recusively
+            ptr = if isNothing bf -- offset to the "String Length" field
+                    then 2 -- w\o "Base Frame"
+                    else 3
+            len = fromIntegral $ c !! ptr
+            n   = bytesToString . take len . drop (ptr + 1) $ c
+            o   = c !! (ptr + len + 1)
+
+parseLEDATA :: Record -> LEDATA_record
+parseLEDATA r = LEDATA_record si eo db
+        where
+            c  = contents r
+            si = c !! 0
+            eo = 0 -- @todo Actually we have 16bits here (even 32 in some cases)
+            db = drop 3 c
+
+findResource :: String -> IO [Word8]
+findResource s = do
+    -- read the file (@todo add multiple files too find in)
+    omf <- OMF.readFile
+    -- find the PUBDEF records with all exported names
+    let
+        pds   = map parsePUBDEF $ findRecords PUBDEF omf
+        entry = head . filter ((==) s . pubName) $ pds -- @todo Handle the case when no entries found
+        si    = baseSegIdx entry
+        dat   = head . filter ((==) si . segmentIdx) . map parseLEDATA $ findRecords LEDATA omf
+
+    return (dataBytes dat)
+
+readFile = do
+    raw <- B.readFile "GAMEPAL.OBJ"
+    let res = runGet parseOMF raw
+        in case res of
+            ((Right recs), _) -> return recs
+            ((Left   err), _) -> do { print $ "OMF parse error: " ++ err; return [] }
