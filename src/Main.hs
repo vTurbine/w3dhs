@@ -7,6 +7,9 @@ import Resources
 
 main :: IO ()
 main = do
+    -- Add cmdline params parsing like:
+    -- fullscreen, SOD/Classic, Data path, etc.
+
     -- Load game resources
     palette <- loadPalette
 

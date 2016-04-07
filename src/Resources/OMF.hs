@@ -1,4 +1,6 @@
-module OMF where
+module Resources.OMF
+    ( findResource
+    ) where
 
 import Control.Monad (replicateM)
 
@@ -10,18 +12,21 @@ import Data.Word
 
 {-
 
+The following definitions added in acordance to the OMF v1.1 specification
 
  @todo
     • Add support for 16-bit and 32-bit chunks (depends on 'RecordType' value)
 
 -}
 
-data RecordType = THEADR
-                | LHEADR
-                | COMENT
-                | MODEND
-                | EXTDEF
-                | PUBDEF
+-- | OMF file records type
+--
+data RecordType = THEADR           -- Translator Header
+                | LHEADR           -- Library Module Header
+                | COMENT           -- Comment
+                | MODEND           -- Module End
+                | EXTDEF           -- External Names Definition
+                | PUBDEF           -- Public Names Definition
                 | LINNUM
                 | LNAMES
                 | SEGDEF
@@ -115,6 +120,9 @@ findRecords r = filter ((==) r . rtype)
 bytesToString :: [Word8] -> String
 bytesToString = map (chr . fromIntegral)
 
+
+-- |Parses PUBDEF chunk
+--
 parsePUBDEF :: Record -> PUBDEF_record
 parsePUBDEF r = PUBDEF_record gi si bf n o
         where
@@ -133,6 +141,9 @@ parsePUBDEF r = PUBDEF_record gi si bf n o
             n   = bytesToString . take len . drop (ptr + 1) $ c
             o   = c !! (ptr + len + 1)
 
+
+-- |Parses LEDATA chunk
+--
 parseLEDATA :: Record -> LEDATA_record
 parseLEDATA r = LEDATA_record si eo db
         where
@@ -141,10 +152,14 @@ parseLEDATA r = LEDATA_record si eo db
             eo = 0 -- @todo Actually we have 16bits here (even 32 in some cases)
             db = drop 3 c
 
-findResource :: String -> IO [Word8]
-findResource s = do
+
+-- |Finds a resource named 's' in the OMF file 'fname'
+-- and returns its data contents
+--
+findResource :: String -> FilePath -> IO [Word8]
+findResource s fname = do
     -- read the file (@todo add multiple files too find in)
-    omf <- OMF.readFile
+    omf <- Resources.OMF.readFile fname
     -- find the PUBDEF records with all exported names
     let
         pds   = map parsePUBDEF $ findRecords PUBDEF omf
@@ -154,8 +169,13 @@ findResource s = do
 
     return (dataBytes dat)
 
-readFile = do
-    raw <- B.readFile "GAMEPAL.OBJ"
+
+-- |The 'readFile' parses binary stream from 'fname' into
+-- list of the 'Record' chunks
+--
+readFile :: FilePath -> IO [Record]
+readFile fname = do
+    raw <- B.readFile fname
     let res = runGet parseOMF raw
         in case res of
             ((Right recs), _) -> return recs
