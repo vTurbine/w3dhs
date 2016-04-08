@@ -11,12 +11,16 @@ scrHeight = 200
 
 -- |Screen's depth
 scrBpp :: Int
-scrBpp = 3 * 6 -- we have only 6 bits per px color component in VGA mode.
+scrBpp = 8      -- we use indexed mode with predefined palette.
 
 -- |Path to the game sources
 gameSrcPath :: FilePath
-gameSrcPath = "WOLF3D-SRC\\"
+gameSrcPath = "/home/shrike/Projects/wolf/wolf3d/WOLFSRC/" -- @todo Change in accordance to the cmdline
 
 -- |Path to the game data
 gameBinPath :: FilePath
-gameBinPath = "WOLF3D\\"
+gameBinPath = "/home/shrike/Projects/wolf/game/WOLF3D/" -- @todo Change in accordance to the cmdline
+
+-- |The extension of the game's resources
+gameBinExt :: String
+gameBinExt = ".WL1" -- @todo Change in accordance to selected mode

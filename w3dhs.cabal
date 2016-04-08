@@ -20,5 +20,11 @@ executable w3dhs
                      , binary-strict
                      , bytestring
                      , SDL
-  other-modules:       Resources
+  other-modules:       Resources.OMF
+                     , Resources.Dictionary
+                     , Resources.Configuration
+                     , Resources
+                     , Game
+                     , SoundManager
                      , Settings
+                     , Utils

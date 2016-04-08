@@ -1,11 +1,13 @@
 module Resources
     ( loadPalette
     , loadSignOn
+    , loadConfig
     ) where
 
 import Data.Word
 import Graphics.UI.SDL
 
+import Resources.Configuration as Config
 import Resources.OMF as OMF
 import Settings
 
@@ -26,4 +28,7 @@ loadPalette = do
 -- Parsing handled by OMF loader.
 --
 loadSignOn :: IO [Word8]
-loadSignOn =  OMF.findResource "_signon" (gameSrcPath ++ "OBJ/SIGNON.OBJ")
+loadSignOn = OMF.findResource "_signon" (gameSrcPath ++ "OBJ/SIGNON.OBJ")
+
+loadConfig :: IO GameConfig
+loadConfig = Config.readConfiguration (gameBinPath ++ "CONFIG" ++ gameBinExt)

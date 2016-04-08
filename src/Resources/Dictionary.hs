@@ -1,4 +1,4 @@
-module Dictionary where
+module Resources.Dictionary where
 
 import Data.Binary.Strict.Get
 import qualified Data.ByteString as B
