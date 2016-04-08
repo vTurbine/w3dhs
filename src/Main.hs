@@ -1,24 +1,11 @@
 module Main where
 
-import Control.Exception (bracket_)
-import Data.Word
-import Foreign.Marshal.Array (pokeArray)
-import Foreign.Ptr
-
 import Graphics.UI.SDL as SDL
-import Graphics.UI.SDL.Video
 
-import Game as Game
+import Game.Menu
+
 import Resources
 import Settings
-
-setSurfaceData :: Surface -> [Word8] -> IO ()
-setSurfaceData s ids = do
-    pxs <- surfaceGetPixels s
-    bracket_
-        (lockSurface s)
-        (unlockSurface s)
-        (pokeArray (castPtr pxs) ids)
 
 main :: IO ()
 main = do
@@ -27,7 +14,6 @@ main = do
 
     -- Load game resources
     palette <- loadPalette
-    signon  <- loadSignOn
     config  <- loadConfig
 
     putStrLn $ "-- Configuration dump --"
@@ -45,11 +31,8 @@ main = do
     -- a way to transpose the palette.
     _ <- SDL.setColors screen palette 0 -- @todo check for result.
 
-    -- blit the SignOn
-    setSurfaceData screen signon
-
     -- draw [Intro Screen]
-    Game.introScreen screen config
+    Game.Menu.introScreen screen
 
     SDL.flip screen
 

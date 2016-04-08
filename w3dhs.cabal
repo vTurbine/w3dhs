@@ -24,6 +24,7 @@ executable w3dhs
                      , Resources.Dictionary
                      , Resources.Configuration
                      , Resources
+                     , Game.Menu
                      , Game
                      , SoundManager
                      , Settings
