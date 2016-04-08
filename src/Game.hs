@@ -7,10 +7,13 @@ import Data.Word
 
 import Resources.Configuration
 
-introMain_color, introEMS_color, introXMS_color :: Word32
+-- @todo put all contents below into Game.Menu file
+
+introMain_color, introEMS_color, introXMS_color, introFill_color :: Word32
 introMain_color = 0x6C
 introEMS_color  = 0x6C
 introXMS_color  = 0x6C
+introFill_color = 14
 
 -- |A wrapper around the `fillRect`.
 -- Similar to original Wolf's API
@@ -33,4 +36,9 @@ introScreen s c = do
     -- ..and XMS for sure.
     mapM_ (\i -> vwb_Bar s 129 (163 - 8 * i) 6 5 introXMS_color)  [0..9]
 
-    -- @todo fill boxes
+    -- check if mouse enabled
+    if mouseEn c
+        then vwb_Bar s 164 82 12 2 introFill_color
+        else return ()
+
+    -- @todo add remain boxes
