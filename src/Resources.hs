@@ -14,10 +14,11 @@ import Settings
 --
 loadPalette :: IO [Color]
 loadPalette = do
-    dat <- OMF.findResource "_gamepal" (gameSrcPath ++ "OBJ\\GAMEPAL.OBJ")
+    dat <- OMF.findResource "_gamepal" (gameSrcPath ++ "OBJ/GAMEPAL.OBJ")
     return $ wordToColor dat
     where
-        wordToColor (r:g:b:res) = (Color (fromIntegral r)
+        wordToColor [] = []
+        wordToColor (r:g:b:res) = (Color (fromIntegral r) -- @todo palette adjustment (8bit)
                                          (fromIntegral g)
                                          (fromIntegral b)) : wordToColor res
 
@@ -25,4 +26,4 @@ loadPalette = do
 -- Parsing handled by OMF loader.
 --
 loadSignOn :: IO [Word8]
-loadSignOn = OMF.findResource "_signon" (gameSrcPath ++ "OBJ\\SIGNON.OBJ")
+loadSignOn =  OMF.findResource "_signon" (gameSrcPath ++ "OBJ/SIGNON.OBJ")
