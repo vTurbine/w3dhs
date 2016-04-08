@@ -149,8 +149,14 @@ parseLEDATA r = LEDATA_record si eo db
         where
             c  = contents r
             si = c !! 0
-            eo = 0 -- @todo Actually we have 16bits here (even 32 in some cases)
+            eo = 0 --((c !! 1 :: Word16) + 255 * (c !! 2 :: Word16)) :: Word16
             db = drop 3 c
+
+-- |Builds whole segment from its scattered parts.
+-- @todo Sure it should be more complicated!
+--
+buildSegment :: [LEDATA_record] -> [Word8]
+buildSegment = concatMap dataBytes
 
 
 -- |Finds a resource named 's' in the OMF file 'fname'
@@ -165,9 +171,11 @@ findResource s fname = do
         pds   = map parsePUBDEF $ findRecords PUBDEF omf
         entry = head . filter ((==) s . pubName) $ pds -- @todo Handle the case when no entries found
         si    = baseSegIdx entry
-        dat   = head . filter ((==) si . segmentIdx) . map parseLEDATA $ findRecords LEDATA omf
+        ds    = filter ((==) si . segmentIdx) . map parseLEDATA $ findRecords LEDATA omf
+        seg   = buildSegment ds
+        ofst  = fromIntegral . pubOffset $ entry
 
-    return (dataBytes dat)
+    return (drop ofst seg)
 
 
 -- |The 'readFile' parses binary stream from 'fname' into
