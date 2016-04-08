@@ -6,9 +6,10 @@ import Control.Monad (replicateM)
 
 import Data.Binary.Strict.Get
 import qualified Data.ByteString as B
-import Data.Char
 import Data.Maybe
 import Data.Word
+
+import Utils
 
 {-
 
@@ -117,18 +118,18 @@ parseOMF = do
 findRecords :: RecordType -> [Record] ->  [Record]
 findRecords r = filter ((==) r . rtype)
 
-bytesToString :: [Word8] -> String
-bytesToString = map (chr . fromIntegral)
-
 
 -- |Parses PUBDEF chunk
 --
 parsePUBDEF :: Record -> PUBDEF_record
-parsePUBDEF r = PUBDEF_record gi si bf n o
+parsePUBDEF r = PUBDEF_record si
+                              (c !! 1)
+                              bf
+                              (bytesToString . take len . drop (ptr + 1) $ c)
+                              (c !! (ptr + len + 1))
         where
             c  = contents r
-            gi = c !! 0
-            si = c !! 1
+            si = (c !! 0)
             bf = if si == 0
                     then Just (c !! 2)
                     else Nothing
@@ -138,19 +139,16 @@ parsePUBDEF r = PUBDEF_record gi si bf n o
                     then 2 -- w\o "Base Frame"
                     else 3
             len = fromIntegral $ c !! ptr
-            n   = bytesToString . take len . drop (ptr + 1) $ c
-            o   = c !! (ptr + len + 1)
 
 
 -- |Parses LEDATA chunk
 --
 parseLEDATA :: Record -> LEDATA_record
-parseLEDATA r = LEDATA_record si eo db
+parseLEDATA r = LEDATA_record (c !! 0)
+                              0 --((c !! 1 :: Word16) + 255 * (c !! 2 :: Word16)) :: Word16
+                              (drop 3 c)
         where
             c  = contents r
-            si = c !! 0
-            eo = 0 --((c !! 1 :: Word16) + 255 * (c !! 2 :: Word16)) :: Word16
-            db = drop 3 c
 
 -- |Builds whole segment from its scattered parts.
 -- @todo Sure it should be more complicated!
