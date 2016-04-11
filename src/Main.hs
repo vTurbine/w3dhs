@@ -1,15 +1,29 @@
 module Main where
 
 import Graphics.UI.SDL as SDL
+import System.Exit
 
 import Game.Menu
 
 import Resources
 import Settings
 
+doExit = do
+    SDL.quit
+    exitWith ExitSuccess
+
+gameLoop :: IO ()
+gameLoop = do
+    ev <- waitEvent
+    case ev of
+        Quit                     -> doExit
+        KeyDown (Keysym _ _ _)   -> doExit
+        _                        -> return ()
+    gameLoop
+
 main :: IO ()
 main = do
-    -- Add cmdline params parsing like:
+    -- Add cmdline params parsing like:1
     -- fullscreen, SOD/Classic/Demo, Data path, etc.
 
     -- Load game resources
@@ -36,6 +50,4 @@ main = do
 
     SDL.flip screen
 
-    -- @todo no game loop yet. Just waiting for user input
-    _ <- getChar
-    return ()
+    gameLoop
