@@ -17,10 +17,13 @@ executable w3dhs
   main-is:             Main.hs
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
+                     , binary
                      , binary-strict
                      , bytestring
+                     , bitstream
                      , SDL
   other-modules:       Resources.OMF
+                     , Resources.Header
                      , Resources.Dictionary
                      , Resources.Configuration
                      , Resources
