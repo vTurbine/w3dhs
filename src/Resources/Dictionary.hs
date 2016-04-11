@@ -39,18 +39,18 @@ parseDict = do
             rest  <- parseDict
             return $ (left, right) : rest
 
-buildTree :: DictElem -> [DictElem] -> HuffTree Word16
+buildTree :: DictElem -> [DictElem] -> HuffTree Word8
 buildTree (l, r) es = Node leftT rightT
     where
         leftT  = if l < 256 -- got a value in left branch
-                    then Leaf l
-                    else buildTree (es !! fromIntegral (l - 256 :: Word16)) es
+                    then Leaf $ fromIntegral l
+                    else buildTree (es !! fromIntegral (l - 256)) es
         rightT = if r < 256 -- got a value in right branch
-                    then Leaf r
-                    else buildTree (es !! fromIntegral (r - 256 :: Word16)) es
+                    then Leaf $ fromIntegral r
+                    else buildTree (es !! fromIntegral (r - 256)) es
 
-readDictFromFile = do
-    raw <- B.readFile "VGADICT.WL6"
+readFile fname = do
+    raw <- B.readFile fname
     let
         ((Right dict), _) = runGet parseDict raw
 
