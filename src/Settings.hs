@@ -15,7 +15,7 @@ scrBpp = 8      -- we use indexed mode with predefined palette.
 
 -- |Path to the game sources
 gameSrcPath :: FilePath
-gameSrcPath = "/home/shrike/Projects/wolf/wolf3d/WOLFSRC/" -- @todo Change in accordance to the cmdline
+gameSrcPath = "wolf3d/WOLFSRC/" -- @todo Change in accordance to the cmdline
 
 -- |Path to the game data
 gameBinPath :: FilePath
