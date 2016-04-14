@@ -3,6 +3,7 @@ module Main where
 import Graphics.UI.SDL as SDL
 import System.Exit
 
+import Game
 import Game.Menu
 
 import Resources
@@ -12,14 +13,22 @@ doExit = do
     SDL.quit
     exitWith ExitSuccess
 
-gameLoop :: IO ()
-gameLoop = do
+gameLoop :: GameState -> Surface -> IO ()
+gameLoop gs sf = do
     ev <- waitEvent
     case ev of
         Quit                     -> doExit
         KeyDown (Keysym _ _ _)   -> doExit
         _                        -> return ()
-    gameLoop
+
+    -- update game state
+    gs' <- Game.updateState gs
+
+    -- draw surfaces, play sounds, etc..
+
+    SDL.flip sf
+
+    gameLoop gs' sf
 
 main :: IO ()
 main = do
@@ -48,6 +57,8 @@ main = do
     -- draw [Intro Screen]
     Game.Menu.introScreen screen
 
-    SDL.flip screen
+    -- initialize game state
+    initState <- Game.initState
 
-    gameLoop
+    -- run main loop
+    gameLoop initState screen
