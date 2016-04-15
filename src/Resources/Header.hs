@@ -1,28 +1,33 @@
-module Resources.Header
-    ( getChunkOffset
+module Resources.Header (
+    ChunkHead(..)
+    , loadHeader
     ) where
 
-import Control.Monad (replicateM)
-import Data.Binary.Strict.Get
-import qualified Data.ByteString as B
+import              Control.Monad (replicateM)
+import              Data.Binary.Strict.Get
+import qualified    Data.ByteString             as B
 
-import Utils
+-- Internal modules import
+import              Utils
 
-{-
-@todo many things there change with game version (SOD/Demo/Classic..)
-      but I still have no idea how to manage it. So will fix to .WL1
-      data by now.
--}
-
-getChunkOffset :: Int -> FilePath -> IO (Int, Int)
-getChunkOffset c fname = do
-    hdata <- Resources.Header.readFile fname
-    let
-        cur  = hdata !! c
-        next = hdata !! (c + 1)
-    return $ (cur, next - cur)
+-- |Chunk's offset in the data container
+type Offset = Int
+-- |Compressed chunk size
+type Size   = Int
+-- |Chunk header type
+type ChunkHead = (Offset, Size)
 
 
+-- |Calculates chunks sizes as differences between
+-- their offsets
+--
+findChunks :: [Int] -> [ChunkHead]
+findChunks (  _:[]) = []
+findChunks (c:n:cs) = (c, n - c) : findChunks (n:cs)
+
+
+-- |Header's stream parser
+--
 parseHeader :: Get [Int]
 parseHeader = do
     empty <- isEmpty
@@ -35,10 +40,11 @@ parseHeader = do
             return $ (bytesToInt $ bytes) : rest
 
 
-readFile :: FilePath -> IO [Int]
-readFile fname = do
-    raw <- B.readFile fname
-    let res = runGet parseHeader raw
-        in case res of
-            ((Right  ofs), _) -> return ofs
-            ((Left   err), _) -> do { print $ "Header parse error: " ++ err; return [] }
+-- |Parses input stream into list of chunk headers
+-- @todo add error handling. Wrong file format (e.g. not THREEBYTEGRSTARTS)
+-- may lead to crash.
+--
+loadHeader :: B.ByteString -> [ChunkHead]
+loadHeader raw = do
+    let ((Right  ofs), _) = runGet parseHeader raw
+        in findChunks ofs

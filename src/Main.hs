@@ -32,16 +32,11 @@ gameLoop gs sf = do
 
 main :: IO ()
 main = do
-    -- Add cmdline params parsing like:1
+    -- Add cmdline params parsing like:
     -- fullscreen, SOD/Classic/Demo, Data path, etc.
 
     -- Load game resources
-    palette <- loadPalette
-    config  <- loadConfig
-
-    putStrLn $ "-- Configuration dump --"
-    print $ config
-    putStrLn $ "-- End of dump --"
+    gameData <- loadGameData
 
     -- Initialize SDL system
     SDL.init [InitAudio, InitVideo]
@@ -52,7 +47,7 @@ main = do
     -- @todo Currently we have a limitation with bpp incompatibility.
     -- The VGA uses 6-6-6 scheme while SDL expected 8-8-8. Need to find
     -- a way to transpose the palette.
-    _ <- SDL.setColors screen palette 0 -- @todo check for result.
+    _ <- SDL.setColors screen (palette gameData) 0 -- @todo check for result.
 
     -- draw [Intro Screen]
     Game.Menu.introScreen screen

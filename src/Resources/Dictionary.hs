@@ -1,4 +1,8 @@
-module Resources.Dictionary where
+module Resources.Dictionary (
+      Dictionary(..)
+    , loadDictionary
+    , decode
+    ) where
 
 import Data.Binary.Strict.Get
 import qualified Data.ByteString as B
@@ -8,6 +12,7 @@ type DictElem = (Word16, Word16)
 data HuffTree a = Leaf a
                 | Node (HuffTree a) (HuffTree a)
                 --deriving (Show)
+type Dictionary = HuffTree Word8
 
 instance Show a => Show (HuffTree a) where
     show =
@@ -39,7 +44,7 @@ parseDict = do
             rest  <- parseDict
             return $ (left, right) : rest
 
-buildTree :: DictElem -> [DictElem] -> HuffTree Word8
+buildTree :: DictElem -> [DictElem] -> Dictionary
 buildTree (l, r) es = Node leftT rightT
     where
         leftT  = if l < 256 -- got a value in left branch
@@ -49,12 +54,12 @@ buildTree (l, r) es = Node leftT rightT
                     then Leaf $ fromIntegral r
                     else buildTree (es !! fromIntegral (r - 256)) es
 
-readFile fname = do
-    raw <- B.readFile fname
+loadDictionary :: B.ByteString -> Dictionary
+loadDictionary raw =
     let
         ((Right dict), _) = runGet parseDict raw
-
-    return $ buildTree (dict !! 254) dict
+    in
+        buildTree (dict !! 254) dict
 
 
 decode :: HuffTree a -> [Bool] -> [a]
