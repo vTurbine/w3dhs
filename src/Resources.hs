@@ -34,20 +34,22 @@ data Sprite = Sprite  {
                       }
 
 
+data Font = Font    {
+                      glyphHeight   :: Int
+                    , glyphOfs      :: [Int]
+                    , glyphWeights  :: [Int]
+                    , glyphsData    :: [Word8]
+                    }
+                    deriving (Show) -- @todo tmp
+
 --
 --
 data GameData = GameData    {
                               palette    :: [Color]
-                            , signon     :: [Word8]
                             , config     :: GameConfig
+                            , startfont  :: Font
                             , sprites    :: [Sprite]
                             }
-
-
--- @todo move it into separate file or load from outside
-data GrChunks = STRUCTPIC
-              | STARTFONT
-              deriving (Show, Enum)
 
 
 -- |The 'loadPalette' returns a palette stored into
@@ -78,35 +80,44 @@ loadConfig = Config.readConfiguration (gameBinPath ++ "CONFIG" ++ gameBinExt)
 
 
 -- @todo some kinds of chunks have implicit size (see STARTTILE8M for example)
+-- @todo huffman returns *more* data than expected. Now I put 'take' here to
+-- truncate, but think it's better to find a reason why it happens
 --
-unpackChunk :: Int -> Dictionary -> [ChunkHead] -> B.ByteString -> IO [Word8]
-unpackChunk chunkId dict heads gtData = do
-    print $ "compressed: " ++ show comp_size ++ " @ :" ++ show ofst
-    print $ B.unpack . B.take 4 $ gtData
-    print $ "expected size: " ++ show unp_size
-    return $ Huff.decode dict $ BS.unpack (BS.fromByteString comp_data :: BitL)
+unpackChunk :: Int -> Dictionary -> [ChunkHead] -> B.ByteString -> [Word8]
+unpackChunk chunkId dict heads gtData = take unp_size unp_data
     where
-        c@(ofst, comp_size) = heads !! chunkId
+        (ofst, comp_size) = heads !! chunkId
         data_seg          = B.drop (fromIntegral ofst) gtData
         unp_size          = bytesToInt . B.unpack . B.take 4 $ data_seg
         comp_data         = B.take comp_size . B.drop 4 $ data_seg
+        unp_data          = Huff.decode dict $ BS.unpack (BS.fromByteString comp_data :: BitL)
 
 
 --
 --
-buildPicTable = id
---buildPicTable :: [Word8] -> [(Int, Int)]
---buildPicTable [] = []
---buildPicTable (wlo:whi:hlo:hhi:xs) =
---    (bytesToInt [wlo, whi], bytesToInt [hlo, hhi]) : buildPicTable xs
+buildPicTable :: [Word8] -> [(Int, Int)]
+buildPicTable [] = []
+buildPicTable (wLo:wHi:hLo:hHi:xs) =
+    (bytesToInt [wLo, wHi], bytesToInt [hLo, hHi]) : buildPicTable xs
 
+
+--
+--
+buildStartFont :: [Word8] -> Font
+buildStartFont (hLo:hHi:xs) = Font  (bytesToInt [hLo, hHi])
+                                    (map2 bytesToInt . take (255 * 2) $ xs)
+                                    (map fromIntegral . take 255 . drop (255 * 2) $ xs)
+                                    (drop (255 * 3) xs)
+    where
+        map2 _       [] = []
+        map2 f (x:y:xs) = (f [x,y]) : map2 f xs
 
 
 -- |Processes game resources and builds internal structures
 --
+loadGameData :: IO GameData
 loadGameData = do
     palette <- loadPalette
-    signon  <- loadSignOn
     config  <- loadConfig
 
     grCache   <- B.readFile $ gameBinPath ++ "VGAGRAPH" ++ gameBinExt
@@ -116,32 +127,11 @@ loadGameData = do
     let
         dict      = Huff.loadDictionary dictCache
         heads     = Header.loadHeader hdCache
-        --pictable  = buildPicTable $ 
-        sprites   = undefined
-
-    a <- unpackChunk (fromEnum STRUCTPIC) dict heads grCache
-
-    print $ "Unpacked: " ++ show (length a)
-
---        pt = buildPicTable $ vgaHead cache
-
-{-
-    pictable_raw <- loadGrResource $ (fromEnum STRUCTPIC) h
-
-    putStrLn $ ":: Cached " ++ show (length pictable) ++ " chunks"
-    putStrLn $ ":: Cache surface [" ++ show totalWidth ++ "x" ++ show totalHeight ++ "]"
-
-    s <- tryCreateRGBSurfaceEndian [SWSurface] totalWidth totalHeight scrBpp
-    case s of
-        Nothing  -> error "Unable to create cache surface"
-        (Just s) -> do
-                data_raw <- loadGrResource 3
-                --setSurfaceData s data_raw
-                setSurfaceData scr data_raw
-                return s
--}
+        pictable  = buildPicTable $ unpackChunk (fromEnum WL6.STRUCTPIC) dict heads grCache
+        startfont = buildStartFont $ unpackChunk (fromEnum WL6.STARTFONT) dict heads grCache
+        sprites   = undefined -- @todo
 
     return $ GameData   palette
-                        signon
                         config
+                        startfont
                         sprites

@@ -33,10 +33,27 @@ introScreen s = do
     -- ..and XMS for sure.
     mapM_ (\i -> vwb_Bar s 129 (163 - 8 * i) 6 5 introXMS_color)  [0..9]
 
-    -- check if mouse enabled
-    let mouseEn = True -- @todo add real check or stub. Not decided yet
-    if mouseEn
-        then vwb_Bar s 164 82 12 2 introFill_color
-        else return ()
+    -- fill boxes
+    -- mouse present
+    vwb_Bar s 164  82 12 2 introFill_color
+    -- joystick present
+    vwb_Bar s 164 105 12 2 introFill_color
+    -- AdLib present
+    vwb_Bar s 164 128 12 2 introFill_color
+    -- SoundBlaster present
+    vwb_Bar s 164 151 12 2 introFill_color
+    -- SoundSource present
+    vwb_Bar s 164 174 12 2 introFill_color
 
-    -- @todo add remain boxes
+    -- clear the "One moment.." text
+    -- @todo get color
+    vwb_Bar s 0 189 300 11 14
+
+    -- fontColor = 14, BG = 4
+    -- @todo probably it's better to add the position, font and BG color
+    -- settings into the game state
+    --us_CPrint 0 190 14 4 "Press a key"
+
+    -- wait for input here
+
+    return ()

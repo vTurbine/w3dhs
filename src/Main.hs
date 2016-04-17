@@ -22,7 +22,7 @@ gameLoop gs sf = do
         _                        -> return ()
 
     -- update game state
-    gs' <- Game.updateState gs
+    let gs' = Game.updateState gs
 
     -- draw surfaces, play sounds, etc..
 
@@ -53,7 +53,7 @@ main = do
     Game.Menu.introScreen screen
 
     -- initialize game state
-    initState <- Game.initState
+    let initState = Game.initState
 
     -- run main loop
     gameLoop initState screen
