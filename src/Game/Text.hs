@@ -13,6 +13,15 @@ setFontColor (fc, bc) = do
     return ()
 
 
+-- |Sets position for text output
+--
+setTextPos :: (Int, Int) -> StateT GameState IO ()
+setTextPos (px, py) = do
+    gameState <- get
+    put $ gameState { printX = px, printY = py }
+    return ()
+
+
 -- |Prints a string centered on the current line
 --
 us_CPrint :: String -> StateT GameState IO ()

@@ -18,15 +18,17 @@ module Game.Intro
     ( introScreen
     ) where
 
-import Control.Monad.Trans.State
-import Control.Monad.Trans
-import Graphics.UI.SDL
-import Data.Word
+import          Control.Monad (forM_)
+import          Control.Monad.Trans.State
+import          Control.Monad.Trans (liftIO)
+import          Graphics.UI.SDL
+import          Data.Word
 
-import Game.Graphics
-import Game.State
-import Game.Text
-import Resources
+-- Internal modules import
+import          Game.Graphics
+import          Game.State
+import          Game.Text
+import          Resources
 
 introMain_color, introEMS_color, introXMS_color, introFill_color :: Word32
 introMain_color = 0x6C
@@ -50,13 +52,13 @@ introScreen = do
 
     -- Of course we have a lot of memory, especially the
     -- ..Main one,
-    liftIO $ mapM_ (\i -> vwb_Bar s  49 (163 - 8 * i) 6 5 introMain_color) [0..9] -- @todo forM_ ?
+    liftIO $ forM_ [0..9] (\i -> vwb_Bar s  49 (163 - 8 * i) 6 5 introMain_color)
 
     -- EMS..,
-    liftIO $ mapM_ (\i -> vwb_Bar s  89 (163 - 8 * i) 6 5 introEMS_color)  [0..9]
+    liftIO $ forM_ [0..9] (\i -> vwb_Bar s  89 (163 - 8 * i) 6 5 introEMS_color)
 
     -- ..and XMS for sure.
-    liftIO $ mapM_ (\i -> vwb_Bar s 129 (163 - 8 * i) 6 5 introXMS_color)  [0..9]
+    liftIO $ forM_ [0..9] (\i -> vwb_Bar s 129 (163 - 8 * i) 6 5 introXMS_color)
 
     -- fill boxes
     -- mouse present
@@ -72,10 +74,12 @@ introScreen = do
 
     -- clear the "One moment.." text
     -- @todo get color
-    liftIO $ vwb_Bar s 0 189 300 11 14
+    liftIO $ vwb_Bar s 0 189 300 11 41
 
-    setFontColor (14, 4)
-    --us_CPrint 0 190 14 4 "Press a key"
+    setFontColor (14,   4)
+    setTextPos   ( 0, 190)
+
+    --us_CPrint "Press a key"
 
     -- wait for input here
 

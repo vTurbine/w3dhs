@@ -1,6 +1,5 @@
 module Game.State where
 
-import Control.Monad.State
 import Graphics.UI.SDL
 
 --
