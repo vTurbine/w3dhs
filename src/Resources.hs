@@ -13,7 +13,6 @@ import              Data.Word
 import              Graphics.UI.SDL
 
 -- Internal modules import
-import              Game
 import              Resources.Configuration as Config
 import              Resources.Dictionary    as Huff
 import              Resources.Header        as Header

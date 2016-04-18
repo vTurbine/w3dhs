@@ -1,11 +1,10 @@
 module Main where
 
+import Control.Monad.Trans.State
 import Graphics.UI.SDL as SDL
 import System.Exit
 
 import Game
-import Game.Intro
-
 import Resources
 import Settings
 
@@ -13,8 +12,8 @@ doExit = do
     SDL.quit
     exitWith ExitSuccess
 
-gameLoop :: GameState -> Surface -> IO ()
-gameLoop gs sf = do
+gameLoop :: GameState -> IO ()
+gameLoop gst = do
     ev <- waitEvent
     case ev of
         Quit                     -> doExit
@@ -22,14 +21,19 @@ gameLoop gs sf = do
         _                        -> return ()
 
     -- update game state
-    let gs' = Game.updateState gs
+    print $ gst
+    gst' <- execStateT Game.updateState gst
+    print $ gst'
 
+    -- @todo
     -- draw surfaces, play sounds, etc..
 
-    SDL.flip sf
+    SDL.flip $ screen gst'
+    gameLoop gst'
 
-    gameLoop gs' sf
 
+--
+--
 main :: IO ()
 main = do
     -- Add cmdline params parsing like:
@@ -49,11 +53,8 @@ main = do
     -- a way to transpose the palette.
     _ <- SDL.setColors screen (palette gameData) 0 -- @todo check for result.
 
-    -- draw [Intro Screen]
-    Game.Intro.introScreen screen
-
     -- initialize game state
     let initState = Game.initState
 
     -- run main loop
-    gameLoop initState screen
+    gameLoop $ initState {screen = screen}
