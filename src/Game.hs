@@ -16,7 +16,7 @@ import Game.Graphics
 import Game.Intro
 import Game.State
 import Game.Text
-
+import Resources
 
 -- |Initializes the game state
 -- @todo probably it's better to run all state-related calculations
@@ -24,11 +24,14 @@ import Game.Text
 --
 initState :: GameState
 initState = GameState { step        = IntroScreen
+                      , windowX     = 0
+                      , windowY     = 0
                       , printX      = 0
                       , printY      = 0
                       , fontColor   = 0
                       , backColor   = 0
                       , screen      = undefined
+                      , gameData    = undefined
                       }
 
 -- |Updates the game state

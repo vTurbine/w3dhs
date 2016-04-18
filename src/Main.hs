@@ -21,9 +21,7 @@ gameLoop gst = do
         _                        -> return ()
 
     -- update game state
-    print $ gst
     gst' <- execStateT Game.updateState gst
-    print $ gst'
 
     -- @todo
     -- draw surfaces, play sounds, etc..
@@ -40,7 +38,7 @@ main = do
     -- fullscreen, SOD/Classic/Demo, Data path, etc.
 
     -- Load game resources
-    gameData <- loadGameData
+    gdata <- loadGameData
 
     -- Initialize SDL system
     SDL.init [InitAudio, InitVideo]
@@ -51,10 +49,7 @@ main = do
     -- @todo Currently we have a limitation with bpp incompatibility.
     -- The VGA uses 6-6-6 scheme while SDL expected 8-8-8. Need to find
     -- a way to transpose the palette.
-    _ <- SDL.setColors screen (palette gameData) 0 -- @todo check for result.
+    _ <- SDL.setColors screen (palette gdata) 0 -- @todo check for result.
 
-    -- initialize game state
-    let initState = Game.initState
-
-    -- run main loop
-    gameLoop $ initState {screen = screen}
+    -- initialize game state and run the main loop
+    gameLoop $ Game.initState {screen = screen, gameData = gdata}

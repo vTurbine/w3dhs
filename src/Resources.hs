@@ -1,7 +1,7 @@
 module Resources (
       GameData(..)
+    , Font(..)
     , loadPalette
-    , loadSignOn
     , loadConfig
     , loadGameData
     ) where
@@ -33,6 +33,12 @@ data Sprite = Sprite  {
                       }
 
 
+data Glyph = Glyph  { gWeight :: Int
+                    , gHeight :: Int
+                    , gData   :: [Word8]
+                    }
+
+
 data Font = Font    {
                       glyphHeight   :: Int
                     , glyphOfs      :: [Int]
@@ -43,10 +49,10 @@ data Font = Font    {
 
 --
 --
-data GameData = GameData    {
-                              palette    :: [Color]
+data GameData = GameData    { palette    :: [Color]
+                            , signon     :: [Word8]
                             , config     :: GameConfig
-                            , startfont  :: Font
+                            , startFont  :: Font
                             , sprites    :: [Sprite]
                             }
 
@@ -116,6 +122,7 @@ buildStartFont (hLo:hHi:xs) = Font  (bytesToInt [hLo, hHi])
 --
 loadGameData :: IO GameData
 loadGameData = do
+    signon  <- loadSignOn
     palette <- loadPalette
     config  <- loadConfig
 
@@ -131,6 +138,7 @@ loadGameData = do
         sprites   = undefined -- @todo
 
     return $ GameData   palette
+                        signon
                         config
                         startfont
                         sprites

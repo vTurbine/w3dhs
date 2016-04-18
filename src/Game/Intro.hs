@@ -30,56 +30,68 @@ import          Game.State
 import          Game.Text
 import          Resources
 
+
 introMain_color, introEMS_color, introXMS_color, introFill_color :: Word32
 introMain_color = 0x6C
 introEMS_color  = 0x6C
 introXMS_color  = 0x6C
 introFill_color = 14
 
-introScreen :: StateT GameState IO ()
-introScreen = do
-    -- get current game state and obtain the screen surface
-    gameState <- get
 
-    let s = screen gameState
+-- |An IO wrapper for surface-related operations
+-- Reduces amount of 'liftIO' operations
+--
+introScreen_drawBegin :: Surface -> [Word8] -> IO ()
+introScreen_drawBegin surf bg = do
+    -- Draw background image
+    setSurfaceData surf bg
 
-    -- load and blit the intro screen
-    signon <- liftIO $ loadSignOn
-
-    liftIO $ setSurfaceData s signon
-
-    -- Fill the boxes in the SignOn screen
+    -- Fill the boxes in the signon screen
 
     -- Of course we have a lot of memory, especially the
     -- ..Main one,
-    liftIO $ forM_ [0..9] (\i -> vwb_Bar s  49 (163 - 8 * i) 6 5 introMain_color)
+    forM_ [0..9] (\i -> vwb_Bar surf  49 (163 - 8 * i) 6 5 introMain_color)
 
     -- EMS..,
-    liftIO $ forM_ [0..9] (\i -> vwb_Bar s  89 (163 - 8 * i) 6 5 introEMS_color)
+    forM_ [0..9] (\i -> vwb_Bar surf  89 (163 - 8 * i) 6 5 introEMS_color)
 
     -- ..and XMS for sure.
-    liftIO $ forM_ [0..9] (\i -> vwb_Bar s 129 (163 - 8 * i) 6 5 introXMS_color)
+    forM_ [0..9] (\i -> vwb_Bar surf 129 (163 - 8 * i) 6 5 introXMS_color)
 
-    -- fill boxes
-    -- mouse present
-    liftIO $ vwb_Bar s 164  82 12 2 introFill_color
+        -- mouse present
+    vwb_Bar surf 164  82 12 2 introFill_color
     -- joystick present
-    liftIO $ vwb_Bar s 164 105 12 2 introFill_color
+    vwb_Bar surf 164 105 12 2 introFill_color
     -- AdLib present
-    liftIO $ vwb_Bar s 164 128 12 2 introFill_color
+    vwb_Bar surf 164 128 12 2 introFill_color
     -- SoundBlaster present
-    liftIO $ vwb_Bar s 164 151 12 2 introFill_color
+    vwb_Bar surf 164 151 12 2 introFill_color
     -- SoundSource present
-    liftIO $ vwb_Bar s 164 174 12 2 introFill_color
+    vwb_Bar surf 164 174 12 2 introFill_color
 
     -- clear the "One moment.." text
     -- @todo get color
-    liftIO $ vwb_Bar s 0 189 300 11 41
+    vwb_Bar surf 0 189 300 11 41
+
+
+--
+--
+introScreen :: StateT GameState IO ()
+introScreen = do
+    -- get current game state
+    gstate <- get
+
+    let
+        gdata    = gameData gstate
+        intorscr = signon gdata
+
+    -- draw the intro screen
+    liftIO $ introScreen_drawBegin (screen gstate) intorscr
 
     setFontColor (14,   4)
     setTextPos   ( 0, 190)
 
-    --us_CPrint "Press a key"
+    us_CPrint "Press a key"
 
     -- wait for input here
 
