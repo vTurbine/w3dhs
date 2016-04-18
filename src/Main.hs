@@ -4,7 +4,7 @@ import Graphics.UI.SDL as SDL
 import System.Exit
 
 import Game
-import Game.Menu
+import Game.Intro
 
 import Resources
 import Settings
@@ -50,7 +50,7 @@ main = do
     _ <- SDL.setColors screen (palette gameData) 0 -- @todo check for result.
 
     -- draw [Intro Screen]
-    Game.Menu.introScreen screen
+    Game.Intro.introScreen screen
 
     -- initialize game state
     let initState = Game.initState

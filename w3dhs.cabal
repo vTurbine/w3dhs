@@ -28,6 +28,7 @@ executable w3dhs
                      , Resources.Configuration
                      , Resources.Gfxv_wl6
                      , Resources
+                     , Game.Intro
                      , Game.Menu
                      , Game
                      , SoundManager
