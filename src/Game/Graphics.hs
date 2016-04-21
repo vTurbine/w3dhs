@@ -10,11 +10,10 @@ import Resources
 
 -- |A wrapper around the `fillRect`.
 -- Similar to original Wolf's API
--- @todo get rectange as 'Rect' record
 --
-vwb_Bar :: Surface -> Int -> Int -> Int -> Int -> Word32 -> IO ()
-vwb_Bar s r0 r1 r2 r3 px = do
-    _ <- fillRect s (Just (Rect r0 r1 r2 r3)) (Pixel px)
+vwb_Bar :: Surface -> Rect -> Word32 -> IO ()
+vwb_Bar s r px = do
+    _ <- fillRect s (Just r) (Pixel px)
     return ()
 
 

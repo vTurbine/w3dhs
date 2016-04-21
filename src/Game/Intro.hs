@@ -50,28 +50,28 @@ introScreen_drawBegin surf bg = do
 
     -- Of course we have a lot of memory, especially the
     -- ..Main one,
-    forM_ [0..9] (\i -> vwb_Bar surf  49 (163 - 8 * i) 6 5 introMain_color)
+    forM_ [0..9] (\i -> vwb_Bar surf (Rect  49 (163 - 8 * i) 6 5) introMain_color)
 
     -- EMS..,
-    forM_ [0..9] (\i -> vwb_Bar surf  89 (163 - 8 * i) 6 5 introEMS_color)
+    forM_ [0..9] (\i -> vwb_Bar surf (Rect  89 (163 - 8 * i) 6 5) introEMS_color)
 
     -- ..and XMS for sure.
-    forM_ [0..9] (\i -> vwb_Bar surf 129 (163 - 8 * i) 6 5 introXMS_color)
+    forM_ [0..9] (\i -> vwb_Bar surf (Rect 129 (163 - 8 * i) 6 5) introXMS_color)
 
         -- mouse present
-    vwb_Bar surf 164  82 12 2 introFill_color
+    vwb_Bar surf (Rect 164  82 12 2) introFill_color
     -- joystick present
-    vwb_Bar surf 164 105 12 2 introFill_color
+    vwb_Bar surf (Rect 164 105 12 2) introFill_color
     -- AdLib present
-    vwb_Bar surf 164 128 12 2 introFill_color
+    vwb_Bar surf (Rect 164 128 12 2) introFill_color
     -- SoundBlaster present
-    vwb_Bar surf 164 151 12 2 introFill_color
+    vwb_Bar surf (Rect 164 151 12 2) introFill_color
     -- SoundSource present
-    vwb_Bar surf 164 174 12 2 introFill_color
+    vwb_Bar surf (Rect 164 174 12 2) introFill_color
 
     -- clear the "One moment.." text
     -- @todo get color
-    vwb_Bar surf 0 189 300 11 41
+    vwb_Bar surf (Rect 0 189 300 11) 41
 
 
 --
