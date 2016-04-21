@@ -38,7 +38,7 @@ vwl_MeasureString str = do
     let
         gdata = gameData gstate
         font  = startFont gdata
-        width = sum $ map (\c -> (glyphWeights font) !! ord c) str
+        width = sum $ map (\c -> (glyphWidths font) !! ord c) str
 
     return (width, glyphHeight font)
 
@@ -58,7 +58,7 @@ us_CPrint str = do
         py = printY gstate
 
     -- draw the string on the surface
-    liftIO $ vw_DrawPropString (screen gstate) (Rect px py sWidth sHeight) str font
+    liftIO $ vw_DrawPropString (Rect px py sWidth sHeight) str font
 
     put $ gstate { printY = py + sHeight }
     return ()

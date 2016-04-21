@@ -42,7 +42,7 @@ data Glyph = Glyph  { gWeight :: Int
 data Font = Font    {
                       glyphHeight   :: Int
                     , glyphOfs      :: [Int]
-                    , glyphWeights  :: [Int]
+                    , glyphWidths   :: [Int]
                     , glyphsData    :: [Word8]
                     }
                     deriving (Show) -- @todo tmp
@@ -60,15 +60,17 @@ data GameData = GameData    { palette    :: [Color]
 -- |The 'loadPalette' returns a palette stored into
 -- GAMEPAL.OBJ file. Parsing handled by OMF loader.
 --
+-- The coefficient 4.0 selected as 2^(8-6) bit correction
+--
 loadPalette :: IO [Color]
 loadPalette = do
     dat <- OMF.findResource "_gamepal" (gameSrcPath ++ "OBJ/GAMEPAL.OBJ")
     return $ wordsToColor dat
     where
         wordsToColor [] = []
-        wordsToColor (r:g:b:res) = (Color (fromIntegral r) -- @todo palette adjustment (8bit)
-                                          (fromIntegral g)
-                                          (fromIntegral b)) : wordsToColor res
+        wordsToColor (r:g:b:res) = (Color (fromIntegral r * 4)
+                                          (fromIntegral g * 4)
+                                          (fromIntegral b * 4)) : wordsToColor res
 
 
 -- |Loads signOn screen from the SIGNON.OBJ file.

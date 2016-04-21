@@ -1,6 +1,7 @@
 module Game.Graphics where
 
 import Control.Exception (bracket_)
+import Data.Char (ord)
 import Data.Word
 import Graphics.UI.SDL
 import Foreign.Marshal.Array (pokeArray)
@@ -20,19 +21,25 @@ vwb_Bar s r px = do
 
 --
 --
-vw_DrawPropString :: Surface -> Rect -> String -> Font -> IO ()
-vw_DrawPropString s r@(Rect x y w h) str f = do
+vw_DrawPropString :: Rect -> String -> Font -> IO ()
+vw_DrawPropString r@(Rect x y w h) str f = do
     -- @todo render the string
-    let sdata = replicate (w * h) 0 :: [Word8]
+    -- @kludge rework it ASAP!
+    let
+        ofsts = map (\c -> ((glyphOfs f) !! (ord c) - 770, (glyphWidths f) !! (ord c) * (glyphHeight f))) str
+        glyphs = map (\(o,s) -> take s . drop o $ (glyphsData f)) ofsts
+        sdata = concat glyphs
 
     -- create surface with size of rect
-    (Just surf) <- tryCreateRGBSurfaceEndian [SWSurface] w h scrBpp
+    surf <- (createRGBSurfaceEndian [SWSurface] w h scrBpp) >>= displayFormat
 
     -- copy data to the surface
     setSurfaceData surf sdata
 
     -- blit it on the screen
-    blitSurface surf Nothing s (Just r)
+    screen <- getVideoSurface
+    _ <- blitSurface surf Nothing screen (Just r)
+
     freeSurface surf
 
 
