@@ -51,17 +51,15 @@ us_CPrint str = do
 
     (sWidth, sHeight) <- vwl_MeasureString str
 
-    liftIO $ print $ sWidth
-    liftIO $ print $ sHeight
-
     let
         gdata = gameData gstate
         font  = startFont gdata
         px = round $ fromIntegral ((windowX gstate) + (scrWidth - sWidth)) / 2
         py = printY gstate
+        col = fromIntegral $ fontColor gstate
 
     -- draw the string on the surface
-    liftIO $ vw_DrawPropString (Rect px py sWidth sHeight) str font
+    liftIO $ vw_DrawPropString (Rect px py sWidth sHeight) str font col
 
     put $ gstate { printY = py + sHeight }
     return ()
