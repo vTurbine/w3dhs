@@ -1,11 +1,12 @@
 module Main where
 
+import          Control.Monad.Trans.State
+import          Control.Monad.Trans (liftIO)
 import Graphics.UI.SDL as SDL
 import System.Exit
 
 import Game
-import Game.Menu
-
+import Game.State
 import Resources
 import Settings
 
@@ -13,35 +14,48 @@ doExit = do
     SDL.quit
     exitWith ExitSuccess
 
-gameLoop :: GameState -> Surface -> IO ()
-gameLoop gs sf = do
-    ev <- waitEvent
+gameLoop :: StateT GameState IO ()
+gameLoop = do
+    gstate <- get
+
+    liftIO $ print (currStep gstate)
+
+    let
+      akeys = activeKeys gstate
+
+    ev <- liftIO $ waitEvent
     case ev of
-        Quit                     -> doExit
-        KeyDown (Keysym _ _ _)   -> doExit
-        _                        -> return ()
+        Quit                          -> liftIO $ doExit
+        KeyDown (Keysym SDLK_q _ _)   -> liftIO $ doExit -- fast exit
+        KeyDown (Keysym      k _ _)   -> modify $ (\s -> s { activeKeys = k : akeys
+                                                           , inputAck = True
+                                                           })
+        _                             -> return ()
 
-    -- update game state
-    gs' <- Game.updateState gs
+    -- update the state
+    Game.updateState
+    gstate' <- get
 
-    -- draw surfaces, play sounds, etc..
+    -- flip the final surface
+    liftIO $ SDL.flip $ screen gstate
 
-    SDL.flip sf
+    -- reset input
+    put $ gstate' { inputAck = False
+                  , activeKeys = []
+                  }
 
-    gameLoop gs' sf
+    gameLoop
 
+
+--
+--
 main :: IO ()
 main = do
-    -- Add cmdline params parsing like:1
+    -- Add cmdline params parsing like:
     -- fullscreen, SOD/Classic/Demo, Data path, etc.
 
     -- Load game resources
-    palette <- loadPalette
-    config  <- loadConfig
-
-    putStrLn $ "-- Configuration dump --"
-    print $ config
-    putStrLn $ "-- End of dump --"
+    gdata <- loadGameData
 
     -- Initialize SDL system
     SDL.init [InitAudio, InitVideo]
@@ -52,13 +66,11 @@ main = do
     -- @todo Currently we have a limitation with bpp incompatibility.
     -- The VGA uses 6-6-6 scheme while SDL expected 8-8-8. Need to find
     -- a way to transpose the palette.
-    _ <- SDL.setColors screen palette 0 -- @todo check for result.
+    _ <- SDL.setColors screen (palette gdata) 0 -- @todo check for result.
 
-    -- draw [Intro Screen]
-    Game.Menu.introScreen screen
-
-    -- initialize game state
-    initState <- Game.initState
-
-    -- run main loop
-    gameLoop initState screen
+    -- initialize game state and run the main loop
+    finalState <- execStateT gameLoop $ Game.initState { currStep = IntroScreen
+                                                       , screen = screen
+                                                       , gameData = gdata
+                                                       }
+    return ()

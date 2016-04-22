@@ -1,38 +1,70 @@
-module Resources
-    ( loadPalette
-    , loadSignOn
+module Resources (
+      GameData(..)
+    , Glyph(..)
+    , loadPalette
     , loadConfig
-    , loadGrResource
+    , loadGameData
     ) where
 
-import qualified Data.ByteString as B
-import qualified Data.Bitstream as BS
-import Data.Binary.Get
-import Data.Word
-import Graphics.UI.SDL
+import qualified    Data.ByteString         as B
+import qualified    Data.Bitstream          as BS
+import              Data.Binary.Get
+import              Data.Word
+import              Graphics.UI.SDL
 
-import Resources.Configuration as Config
-import Resources.Dictionary as Huff
-import Resources.Header as Header
-import Resources.OMF as OMF
-import Settings
-import Utils
+-- Internal modules import
+import              Resources.Configuration as Config
+import              Resources.Dictionary    as Huff
+import              Resources.Header        as Header
+import              Resources.OMF           as OMF
+import              Resources.Gfxv_wl6      as WL6
+import              Settings
+import              Utils
 
 type BitL = BS.Bitstream BS.Left
 type BitR = BS.Bitstream BS.Right
 
+--
+--
+data Sprite = Sprite  {
+                        w   :: Int
+                      , h   :: Int
+                      , pxs :: [Word8]
+                      }
+
+
+data Glyph = Glyph  { gWidth  :: Int
+                    , gHeight :: Int
+                    , gData   :: [Word8]
+                    }
+                    deriving (Show)
+
+
+--
+--
+data GameData = GameData    { palette    :: [Color]
+                            , signon     :: [Word8]
+                            , config     :: GameConfig
+                            , startFont  :: [Glyph]
+                            , sprites    :: [Sprite]
+                            }
+
+
 -- |The 'loadPalette' returns a palette stored into
 -- GAMEPAL.OBJ file. Parsing handled by OMF loader.
+--
+-- The coefficient 4.0 selected as 2^(8-6) bit correction
 --
 loadPalette :: IO [Color]
 loadPalette = do
     dat <- OMF.findResource "_gamepal" (gameSrcPath ++ "OBJ/GAMEPAL.OBJ")
-    return $ wordToColor dat
+    return $ wordsToColor dat
     where
-        wordToColor [] = []
-        wordToColor (r:g:b:res) = (Color (fromIntegral r) -- @todo palette adjustment (8bit)
-                                         (fromIntegral g)
-                                         (fromIntegral b)) : wordToColor res
+        wordsToColor [] = []
+        wordsToColor (r:g:b:res) = (Color (fromIntegral r * 4)
+                                          (fromIntegral g * 4)
+                                          (fromIntegral b * 4)) : wordsToColor res
+
 
 -- |Loads signOn screen from the SIGNON.OBJ file.
 -- Parsing handled by OMF loader.
@@ -40,23 +72,70 @@ loadPalette = do
 loadSignOn :: IO [Word8]
 loadSignOn = OMF.findResource "_signon" (gameSrcPath ++ "OBJ/SIGNON.OBJ")
 
+
+--
+--
 loadConfig :: IO GameConfig
 loadConfig = Config.readConfiguration (gameBinPath ++ "CONFIG" ++ gameBinExt)
 
 
-loadGrResource :: Int -> IO [Word8]
-loadGrResource c = do -- @todo Oh my God, make it lazy..
-    chunk@(ofst, size) <- getChunkOffset c (gameBinPath ++ "VGAHEAD" ++ gameBinExt)
-    d <- B.readFile (gameBinPath ++ "VGAGRAPH" ++ gameBinExt)
-    dict <- Huff.readFile (gameBinPath ++ "VGADICT" ++ gameBinExt)
+-- @todo some kinds of chunks have implicit size (see STARTTILE8M for example)
+-- @todo huffman returns *more* data than expected. Now I put 'take' here to
+-- truncate, but think it's better to find a reason why it happens
+--
+unpackChunk :: Int -> Dictionary -> [ChunkHead] -> B.ByteString -> [Word8]
+unpackChunk chunkId dict heads gtData = take unp_size unp_data
+    where
+        (ofst, comp_size) = heads !! chunkId
+        data_seg          = B.drop (fromIntegral ofst) gtData
+        unp_size          = bytesToInt . B.unpack . B.take 4 $ data_seg
+        comp_data         = B.take comp_size . B.drop 4 $ data_seg
+        unp_data          = Huff.decode dict $ BS.unpack (BS.fromByteString comp_data :: BitL)
+
+
+--
+--
+buildPicTable :: [Word8] -> [(Int, Int)]
+buildPicTable [] = []
+buildPicTable (wLo:wHi:hLo:hHi:xs) =
+    (bytesToInt [wLo, wHi], bytesToInt [hLo, hHi]) : buildPicTable xs
+
+
+-- @kludge rework it ASAP!
+--
+buildStartFont :: [Word8] -> [Glyph]
+buildStartFont (hLo:hHi:xs) =
+    map (\(o, w) -> Glyph w h (take (w * h) . drop (o - 770) $ d)) $ zip ofs ws
+    where
+        ofs = map2 bytesToInt $ take (256 * 2) xs
+        ws  = map fromIntegral $ take 256 . drop (256 * 2) $ xs
+        d   = drop (256 * 3) xs
+        h   = bytesToInt [hLo, hHi]
+        map2 _       [] = []
+        map2 f (x:y:xs) = (f [x,y]) : map2 f xs
+
+
+-- |Processes game resources and builds internal structures
+--
+loadGameData :: IO GameData
+loadGameData = do
+    signon  <- loadSignOn
+    palette <- loadPalette
+    config  <- loadConfig
+
+    grCache   <- B.readFile $ gameBinPath ++ "VGAGRAPH" ++ gameBinExt
+    hdCache   <- B.readFile $ gameBinPath ++ "VGAHEAD"  ++ gameBinExt
+    dictCache <- B.readFile $ gameBinPath ++ "VGADICT"  ++ gameBinExt
 
     let
-        data_seg    = B.drop (fromIntegral ofst) d
-        unp_size    = bytesToInt . B.unpack . B.take 4 $ data_seg
-        comp_data   = B.take size . B.drop 4 $ data_seg
-        unp_data    = Huff.decode dict $ BS.unpack (BS.fromByteString comp_data :: BitL)
+        dict      = Huff.loadDictionary dictCache
+        heads     = Header.loadHeader hdCache
+        pictable  = buildPicTable $ unpackChunk (fromEnum WL6.STRUCTPIC) dict heads grCache
+        startfont = buildStartFont $ unpackChunk (fromEnum WL6.STARTFONT) dict heads grCache
+        sprites   = undefined -- @todo
 
-    putStrLn $ "Loaded chunk #" ++ show c ++ " " ++ show chunk ++ " -> " ++ show unp_size
-    print $ length unp_data
-
-    return unp_data
+    return $ GameData   palette
+                        signon
+                        config
+                        startfont
+                        sprites

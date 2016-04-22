@@ -4,48 +4,56 @@ module Game
     , GameState(..)
     , initState
     , updateState
+    , setFontColor
+    , us_CPrint
     ) where
 
-import Control.Exception (bracket_)
-import Foreign.Marshal.Array (pokeArray)
-import Foreign.Ptr
-
-import Graphics.UI.SDL
+import Control.Monad.Trans.State
 import Data.Word
+import Graphics.UI.SDL
 
--- |Game state record definition
---
-data GameState = GameState  { dummy :: String
-                            }
-                            deriving (Show)
+import Game.Graphics
+import Game.Intro
+import Game.Title
+import Game.State
+import Game.Text
+import Resources
 
 -- |Initializes the game state
 -- @todo probably it's better to run all state-related calculations
 -- in environment/state monad
 --
-initState :: IO GameState
-initState = return $ GameState "empty"
+initState :: GameState
+initState = GameState { currStep    = Empty
+                      , nextStep    = Empty
+                      , activeKeys  = []
+                      , windowX     = 0
+                      , windowY     = 0
+                      , printX      = 0
+                      , printY      = 0
+                      , fontColor   = 0
+                      , backColor   = 0
+                      , inputAck    = False
+                      , screen      = undefined
+                      , gameData    = undefined
+                      }
 
 
 -- |Updates the game state
+-- Implements main game FSM
 --
-updateState :: GameState -> IO GameState
-updateState _ = return $ GameState "updated"
+updateState :: StateT GameState IO ()
+updateState = do
+    gstate <- get
 
--- |A wrapper around the `fillRect`.
--- Similar to original Wolf's API
---
-vwb_Bar :: Surface -> Int -> Int -> Int -> Int -> Word32 -> IO ()
-vwb_Bar s r0 r1 r2 r3 px = do
-    _ <- fillRect s (Just (Rect r0 r1 r2 r3)) (Pixel px)
-    return ()
+    let
+      nstep = nextStep gstate
 
--- |Copies the list of `Word8` into a surface
---
-setSurfaceData :: Surface -> [Word8] -> IO ()
-setSurfaceData s ids = do
-    pxs <- surfaceGetPixels s
-    bracket_
-        (lockSurface s)
-        (unlockSurface s)
-        (pokeArray (castPtr pxs) ids)
+    case (currStep gstate) of
+        -- draw [Intro Screen]
+        IntroScreen  -> Game.Intro.introScreen
+        WaitForInput -> if (inputAck gstate)
+                        then put $ gstate { currStep = nstep, nextStep = Empty }
+                        else return ()
+        TitleScreen  -> Game.Title.titleScreen
+        _           -> return ()
