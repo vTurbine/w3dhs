@@ -1,10 +1,12 @@
 module Main where
 
-import Control.Monad.Trans.State
+import          Control.Monad.Trans.State
+import          Control.Monad.Trans (liftIO)
 import Graphics.UI.SDL as SDL
 import System.Exit
 
 import Game
+import Game.State
 import Resources
 import Settings
 
@@ -12,22 +14,37 @@ doExit = do
     SDL.quit
     exitWith ExitSuccess
 
-gameLoop :: GameState -> IO ()
-gameLoop gst = do
-    ev <- waitEvent
+gameLoop :: StateT GameState IO ()
+gameLoop = do
+    gstate <- get
+
+    liftIO $ print (currStep gstate)
+
+    let
+      akeys = activeKeys gstate
+
+    ev <- liftIO $ waitEvent
     case ev of
-        Quit                     -> doExit
-        KeyDown (Keysym _ _ _)   -> doExit
-        _                        -> return ()
+        Quit                          -> liftIO $ doExit
+        KeyDown (Keysym SDLK_q _ _)   -> liftIO $ doExit -- fast exit
+        KeyDown (Keysym      k _ _)   -> modify $ (\s -> s { activeKeys = k : akeys
+                                                           , inputAck = True
+                                                           })
+        _                             -> return ()
 
-    -- update game state
-    gst' <- execStateT Game.updateState gst
+    -- update the state
+    Game.updateState
+    gstate' <- get
 
-    -- @todo
-    -- draw surfaces, play sounds, etc..
+    -- flip the final surface
+    liftIO $ SDL.flip $ screen gstate
 
-    SDL.flip $ screen gst'
-    gameLoop gst'
+    -- reset input
+    put $ gstate' { inputAck = False
+                  , activeKeys = []
+                  }
+
+    gameLoop
 
 
 --
@@ -52,4 +69,8 @@ main = do
     _ <- SDL.setColors screen (palette gdata) 0 -- @todo check for result.
 
     -- initialize game state and run the main loop
-    gameLoop $ Game.initState {screen = screen, gameData = gdata}
+    finalState <- execStateT gameLoop $ Game.initState { currStep = IntroScreen
+                                                       , screen = screen
+                                                       , gameData = gdata
+                                                       }
+    return ()

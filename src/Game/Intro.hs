@@ -70,7 +70,6 @@ introScreen_drawBegin surf bg = do
     vwb_Bar surf (Rect 164 174 12 2) introFill_color
 
     -- clear the "One moment.." text
-    -- @todo get color
     vwb_Bar surf (Rect 0 189 300 11) 41
 
 
@@ -93,6 +92,7 @@ introScreen = do
 
     us_CPrint "Press a key"
 
-    -- wait for input here
-
-    return ()
+    -- wait for input here and process to the title screens
+    put $ gstate { currStep = WaitForInput
+                 , nextStep = TitleScreen
+                 }

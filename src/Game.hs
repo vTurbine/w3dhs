@@ -14,6 +14,7 @@ import Graphics.UI.SDL
 
 import Game.Graphics
 import Game.Intro
+import Game.Title
 import Game.State
 import Game.Text
 import Resources
@@ -23,24 +24,36 @@ import Resources
 -- in environment/state monad
 --
 initState :: GameState
-initState = GameState { step        = IntroScreen
+initState = GameState { currStep    = Empty
+                      , nextStep    = Empty
+                      , activeKeys  = []
                       , windowX     = 0
                       , windowY     = 0
                       , printX      = 0
                       , printY      = 0
                       , fontColor   = 0
                       , backColor   = 0
+                      , inputAck    = False
                       , screen      = undefined
                       , gameData    = undefined
                       }
+
 
 -- |Updates the game state
 -- Implements main game FSM
 --
 updateState :: StateT GameState IO ()
 updateState = do
-    gst <- get
-    case (step gst) of
+    gstate <- get
+
+    let
+      nstep = nextStep gstate
+
+    case (currStep gstate) of
         -- draw [Intro Screen]
-        IntroScreen -> Game.Intro.introScreen
+        IntroScreen  -> Game.Intro.introScreen
+        WaitForInput -> if (inputAck gstate)
+                        then put $ gstate { currStep = nstep, nextStep = Empty }
+                        else return ()
+        TitleScreen  -> Game.Title.titleScreen
         _           -> return ()
