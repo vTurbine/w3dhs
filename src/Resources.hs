@@ -1,6 +1,6 @@
 module Resources (
       GameData(..)
-    , Font(..)
+    , Glyph(..)
     , loadPalette
     , loadConfig
     , loadGameData
@@ -33,26 +33,19 @@ data Sprite = Sprite  {
                       }
 
 
-data Glyph = Glyph  { gWeight :: Int
+data Glyph = Glyph  { gWidth  :: Int
                     , gHeight :: Int
                     , gData   :: [Word8]
                     }
+                    deriving (Show)
 
-
-data Font = Font    {
-                      glyphHeight   :: Int
-                    , glyphOfs      :: [Int]
-                    , glyphWidths   :: [Int]
-                    , glyphsData    :: [Word8]
-                    }
-                    deriving (Show) -- @todo tmp
 
 --
 --
 data GameData = GameData    { palette    :: [Color]
                             , signon     :: [Word8]
                             , config     :: GameConfig
-                            , startFont  :: Font
+                            , startFont  :: [Glyph]
                             , sprites    :: [Sprite]
                             }
 
@@ -108,14 +101,16 @@ buildPicTable (wLo:wHi:hLo:hHi:xs) =
     (bytesToInt [wLo, wHi], bytesToInt [hLo, hHi]) : buildPicTable xs
 
 
+-- @kludge rework it ASAP!
 --
---
-buildStartFont :: [Word8] -> Font
-buildStartFont (hLo:hHi:xs) = Font  (bytesToInt [hLo, hHi])
-                                    (map2 bytesToInt . take (255 * 2) $ xs)
-                                    (map fromIntegral . take 255 . drop (255 * 2) $ xs)
-                                    (drop (255 * 3) xs)
+buildStartFont :: [Word8] -> [Glyph]
+buildStartFont (hLo:hHi:xs) =
+    map (\(o, w) -> Glyph w h (take (w * h) . drop (o - 770) $ d)) $ zip ofs ws
     where
+        ofs = map2 bytesToInt $ take (256 * 2) xs
+        ws  = map fromIntegral $ take 256 . drop (256 * 2) $ xs
+        d   = drop (256 * 3) xs
+        h   = bytesToInt [hLo, hHi]
         map2 _       [] = []
         map2 f (x:y:xs) = (f [x,y]) : map2 f xs
 

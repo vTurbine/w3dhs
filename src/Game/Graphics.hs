@@ -19,22 +19,32 @@ vwb_Bar s r px = do
     return ()
 
 
+-- @todo too many black magic there:
+-- - why do I need to add 3x0 after each line if surface width *exactly* the same as line width?
+-- - how to make this code simplier and pretty? Now it looks like piece of crap
+-- - need to change color
+-- - need to add alpha
 --
---
-vw_DrawPropString :: Rect -> String -> Font -> IO ()
+vw_DrawPropString :: Rect -> String -> [Glyph] -> IO ()
 vw_DrawPropString r@(Rect x y w h) str f = do
-    -- @todo render the string
-    -- @kludge rework it ASAP!
+    -- render the string
     let
-        ofsts = map (\c -> ((glyphOfs f) !! (ord c) - 770, (glyphWidths f) !! (ord c) * (glyphHeight f))) str
-        glyphs = map (\(o,s) -> take s . drop o $ (glyphsData f)) ofsts
-        sdata = concat glyphs
+        sdata = take (w * h) $ concatMap (\i -> (concatMap (foo i) str)++[0,0,0]) [0..(h - 1)]
+            where
+                h = gHeight (f !! 0)
+                foo i c = take w . drop (i * w) $ gData (f !! (ord c))
+                    where w = gWidth (f !! (ord c))
+
+    print $ length sdata
 
     -- create surface with size of rect
-    surf <- (createRGBSurfaceEndian [SWSurface] w h scrBpp) >>= displayFormat
+    surf <- (createRGBSurfaceEndian [SWSurface] (w) (h) scrBpp) >>= displayFormat
 
     -- copy data to the surface
     setSurfaceData surf sdata
+
+    print $ surfaceGetWidth surf
+    print $ surfaceGetHeight surf
 
     -- blit it on the screen
     screen <- getVideoSurface

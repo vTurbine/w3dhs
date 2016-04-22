@@ -38,9 +38,9 @@ vwl_MeasureString str = do
     let
         gdata = gameData gstate
         font  = startFont gdata
-        width = sum $ map (\c -> (glyphWidths font) !! ord c) str
+        width = sum $ map (\c -> gWidth (font !! ord c)) str
 
-    return (width, glyphHeight font)
+    return (width, gHeight (font !! 0)) -- we have the height for all glyphs
 
 
 -- |Prints a string centered on the current line
@@ -50,6 +50,9 @@ us_CPrint str = do
     gstate <- get
 
     (sWidth, sHeight) <- vwl_MeasureString str
+
+    liftIO $ print $ sWidth
+    liftIO $ print $ sHeight
 
     let
         gdata = gameData gstate
