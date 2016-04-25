@@ -8,9 +8,10 @@ module Game
     , us_CPrint
     ) where
 
+import Control.Monad.Trans
 import Control.Monad.Trans.State
 import Data.Word
-import Graphics.UI.SDL
+import Graphics.UI.SDL as SDL
 
 import Game.Graphics
 import Game.Intro
@@ -53,7 +54,15 @@ updateState = do
         -- draw [Intro Screen]
         IntroScreen  -> Game.Intro.introScreen
         WaitForInput -> if (inputAck gstate)
-                        then put $ gstate { currStep = nstep, nextStep = Empty }
+                        then put $ gstate { currStep = nstep
+                                          , nextStep = Empty
+                                          }
                         else return ()
-        TitleScreen  -> Game.Title.titleScreen
-        _           -> return ()
+        DelayMs ms   -> do {
+                          liftIO $ SDL.delay ms; put $ gstate { currStep = nstep
+                                                              , nextStep = Empty
+                                                              }
+                        }
+        TitlePG13    -> Game.Title.pg13
+        TitlePage    -> Game.Title.titlePage
+        _            -> return ()

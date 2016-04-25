@@ -1,6 +1,7 @@
 module Resources (
       GameData(..)
     , Glyph(..)
+    , Lump(..)
     , loadPalette
     , loadConfig
     , loadGameData
@@ -26,11 +27,11 @@ type BitR = BS.Bitstream BS.Right
 
 --
 --
-data Sprite = Sprite  {
-                        w   :: Int
-                      , h   :: Int
-                      , pxs :: [Word8]
-                      }
+data Lump = Lump    { w   :: Int
+                    , h   :: Int
+                    , pxs :: [Word8]
+                    }
+                    deriving (Show)
 
 
 data Glyph = Glyph  { gWidth  :: Int
@@ -46,7 +47,7 @@ data GameData = GameData    { palette    :: [Color]
                             , signon     :: [Word8]
                             , config     :: GameConfig
                             , startFont  :: [Glyph]
-                            , sprites    :: [Sprite]
+                            , lumps      :: [Lump]
                             }
 
 
@@ -115,6 +116,15 @@ buildStartFont (hLo:hHi:xs) =
         map2 f (x:y:xs) = (f [x,y]) : map2 f xs
 
 
+-- |Rebuilds 4x4-plane image into common pixel format
+--
+rebuildLump :: Int -> Int -> [Word8] -> [Word8]
+rebuildLump w h d = combine $ map makeBlocks [0..(numBlocks - 1)]
+    where
+        numBlocks = w * h
+        combine bs = d -- @todo
+        makeBlocks = undefined
+
 -- |Processes game resources and builds internal structures
 --
 loadGameData :: IO GameData
@@ -132,10 +142,16 @@ loadGameData = do
         heads     = Header.loadHeader hdCache
         pictable  = buildPicTable $ unpackChunk (fromEnum WL6.STRUCTPIC) dict heads grCache
         startfont = buildStartFont $ unpackChunk (fromEnum WL6.STARTFONT) dict heads grCache
-        sprites   = undefined -- @todo
+        lumps     = map (\(n, (w, h)) -> Lump w h (rebuildLump w h $ unpackChunk n dict heads grCache)) $ zip [3..] pictable
+
+    print $ heads
+    print $ length heads
+
+    print $ pictable
+    print $ length pictable
 
     return $ GameData   palette
                         signon
                         config
                         startfont
-                        sprites
+                        lumps

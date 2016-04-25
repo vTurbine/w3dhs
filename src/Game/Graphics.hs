@@ -10,6 +10,26 @@ import Foreign.Ptr
 import Resources
 import Settings
 
+data Point = Point Int Int
+
+--
+-- @todo change pic id to enum
+--
+vwb_DrawPic :: Point -> Lump -> IO ()
+vwb_DrawPic (Point x y) (Lump w h pxs) = do
+    -- create surface with size of sprite
+    surf <- (createRGBSurfaceEndian [HWSurface] w h scrBpp) >>= displayFormat
+
+    -- copy data to the surface
+    setSurfaceData surf pxs
+
+    -- blit it on the screen
+    screen <- getVideoSurface
+    _ <- blitSurface surf Nothing screen (Just (Rect x y w h))
+
+    freeSurface surf
+
+
 -- |A wrapper around the `fillRect`.
 -- Similar to original Wolf's API
 --

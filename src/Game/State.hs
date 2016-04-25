@@ -1,16 +1,18 @@
 module Game.State where
 
 import Graphics.UI.SDL
+import Data.Word
 
 import Resources
 
 --
 --
 data GameStep = IntroScreen
-              | TitleScreen
+              | TitlePG13
+              | TitlePage
               | MainMenu
               | WaitForInput
-              | DelayMs Int
+              | DelayMs Word32
               | Empty -- @todo really needed?
               deriving (Show)
 

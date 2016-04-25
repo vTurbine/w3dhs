@@ -94,5 +94,5 @@ introScreen = do
 
     -- wait for input here and process to the title screens
     put $ gstate { currStep = WaitForInput
-                 , nextStep = TitleScreen
+                 , nextStep = TitlePG13
                  }
