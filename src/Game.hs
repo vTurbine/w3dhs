@@ -37,32 +37,49 @@ initState = GameState { currStep    = Empty
                       , inputAck    = False
                       , screen      = undefined
                       , gameData    = undefined
+                      , signon      = undefined
+                      , palette     = undefined
                       }
 
 
 -- |Updates the game state
 -- Implements main game FSM
+-- @todo simplify to "next step"
 --
 updateState :: StateT GameState IO ()
 updateState = do
     gstate <- get
 
+    case (currStep gstate) of
+        --
+        Empty        -> error $ "The state machine is broken"
+        -- draw [Intro Screen]
+        IntroBegin   -> Game.Intro.introScreen_begin
+        --
+        LoadResources-> do
+                          gdata <- liftIO $ loadGameData
+                          put $ gstate { gameData = gdata
+                                       , nextStep = IntroEnd
+                                       }
+        --
+        IntroEnd     -> Game.Intro.introScreen_end
+        --
+        WaitForInput -> if (inputAck gstate)
+                        then put $ gstate { nextStep = WaitForInput }
+                        else return ()
+        --
+        DelayMs ms   -> liftIO $ SDL.delay ms;
+        --
+        TitlePG13    -> Game.Title.pg13
+        --
+        TitlePage    -> Game.Title.titlePage
+        _            -> return ()
+
+    -- update the state
+    gstate <- get
+
     let
       nstep = nextStep gstate
 
-    case (currStep gstate) of
-        -- draw [Intro Screen]
-        IntroScreen  -> Game.Intro.introScreen
-        WaitForInput -> if (inputAck gstate)
-                        then put $ gstate { currStep = nstep
-                                          , nextStep = Empty
-                                          }
-                        else return ()
-        DelayMs ms   -> do {
-                          liftIO $ SDL.delay ms; put $ gstate { currStep = nstep
-                                                              , nextStep = Empty
-                                                              }
-                        }
-        TitlePG13    -> Game.Title.pg13
-        TitlePage    -> Game.Title.titlePage
-        _            -> return ()
+    -- proceed to the next step
+    put $ gstate { currStep = nstep }

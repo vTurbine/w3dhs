@@ -15,7 +15,8 @@
 -}
 
 module Game.Intro
-    ( introScreen
+    ( introScreen_begin
+    , introScreen_end
     ) where
 
 import          Control.Monad (forM_)
@@ -41,8 +42,8 @@ introFill_color = 14
 -- |An IO wrapper for surface-related operations
 -- Reduces amount of 'liftIO' operations
 --
-introScreen_drawBegin :: Surface -> [Word8] -> IO ()
-introScreen_drawBegin surf bg = do
+introScreen_draw :: Surface -> [Word8] -> IO ()
+introScreen_draw surf bg = do
     -- Draw background image
     setSurfaceData surf bg
 
@@ -75,17 +76,23 @@ introScreen_drawBegin surf bg = do
 
 --
 --
-introScreen :: StateT GameState IO ()
-introScreen = do
+introScreen_begin :: StateT GameState IO ()
+introScreen_begin = do
     -- get current game state
     gstate <- get
 
-    let
-        gdata    = gameData gstate
-        intorscr = signon gdata
-
     -- draw the intro screen
-    liftIO $ introScreen_drawBegin (screen gstate) intorscr
+    liftIO $ introScreen_draw (screen gstate) (signon gstate)
+
+    -- All ok. Can proceed to resource loading
+    put $ gstate { nextStep = LoadResources }
+
+--
+--
+introScreen_end :: StateT GameState IO ()
+introScreen_end = do
+    -- get current game state
+    gstate <- get
 
     setFontColor (14,   4)
     setTextPos   ( 0, 190)

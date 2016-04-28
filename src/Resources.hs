@@ -3,6 +3,7 @@ module Resources (
     , Glyph(..)
     , Lump(..)
     , loadPalette
+    , loadSignon
     , loadConfig
     , loadGameData
     ) where
@@ -43,9 +44,7 @@ data Glyph = Glyph  { gWidth  :: Int
 
 --
 --
-data GameData = GameData    { palette    :: [Color]
-                            , signon     :: [Word8]
-                            , config     :: GameConfig
+data GameData = GameData    { config     :: GameConfig
                             , startFont  :: [Glyph]
                             , lumps      :: [Lump]
                             }
@@ -70,8 +69,8 @@ loadPalette = do
 -- |Loads signOn screen from the SIGNON.OBJ file.
 -- Parsing handled by OMF loader.
 --
-loadSignOn :: IO [Word8]
-loadSignOn = OMF.findResource "_signon" (gameSrcPath ++ "OBJ/SIGNON.OBJ")
+loadSignon :: IO [Word8]
+loadSignon = OMF.findResource "_signon" (gameSrcPath ++ "OBJ/SIGNON.OBJ")
 
 
 --
@@ -116,21 +115,29 @@ buildStartFont (hLo:hHi:xs) =
         map2 f (x:y:xs) = (f [x,y]) : map2 f xs
 
 
--- |Rebuilds 4x4-plane image into common pixel format
+-- |Rebuilds 4x4-planes image into common pixel format
+-- All credits go to Constantine Zakharchenko and his
+-- brilliant idea of transformation
+-- @todo simplify the code and document it on the wiki
 --
-rebuildLump :: Int -> Int -> [Word8] -> [Word8]
-rebuildLump w h d = combine $ map makeBlocks [0..(numBlocks - 1)]
+rebuildLump :: Lump -> Lump
+rebuildLump (Lump w h p) = Lump w h (rebuild p)
     where
-        numBlocks = w * h
-        combine bs = d -- @todo
-        makeBlocks = undefined
+        rebuild p = map (f p) [0..(w * h - 1)]
+        f p i_t = p !! i_s
+            where
+                (x_t, y_t) = (i_t `mod` w, i_t `div` w)
+                (x_tb, y_tb) = (x_t `div` 4, y_t `div` 4)
+                (x_tbpos, y_tbpos) = (x_t `mod` 4, y_t `mod` 4)
+                i_s = (x_sb + x_sbpos) + w * (y_sb + y_sbpos)
+                (x_sb, y_sb) = (y_tbpos * (w `div` 4), x_tbpos * (h `div` 4))
+                (x_sbpos, y_sbpos) = (x_tb, y_tb)
+
 
 -- |Processes game resources and builds internal structures
 --
 loadGameData :: IO GameData
 loadGameData = do
-    signon  <- loadSignOn
-    palette <- loadPalette
     config  <- loadConfig
 
     grCache   <- B.readFile $ gameBinPath ++ "VGAGRAPH" ++ gameBinExt
@@ -142,16 +149,8 @@ loadGameData = do
         heads     = Header.loadHeader hdCache
         pictable  = buildPicTable $ unpackChunk (fromEnum WL6.STRUCTPIC) dict heads grCache
         startfont = buildStartFont $ unpackChunk (fromEnum WL6.STARTFONT) dict heads grCache
-        lumps     = map (\(n, (w, h)) -> Lump w h (rebuildLump w h $ unpackChunk n dict heads grCache)) $ zip [3..] pictable
+        lumps     = map (\(n, (w, h)) -> rebuildLump $ Lump w h (unpackChunk n dict heads grCache)) $ zip [3..] pictable
 
-    print $ heads
-    print $ length heads
-
-    print $ pictable
-    print $ length pictable
-
-    return $ GameData   palette
-                        signon
-                        config
+    return $ GameData   config
                         startfont
                         lumps

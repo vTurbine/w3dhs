@@ -7,7 +7,9 @@ import Resources
 
 --
 --
-data GameStep = IntroScreen
+data GameStep = IntroBegin
+              | LoadResources
+              | IntroEnd
               | TitlePG13
               | TitlePage
               | MainMenu
@@ -29,5 +31,7 @@ data GameState = GameState  { currStep      :: GameStep
                             , backColor     :: Int
                             , inputAck      :: Bool               -- is any input event occured
                             , screen        :: Surface
+                            , signon        :: [Word8]
+                            , palette       :: [Color]
                             , gameData      :: GameData
                             }

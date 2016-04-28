@@ -54,8 +54,9 @@ main = do
     -- Add cmdline params parsing like:
     -- fullscreen, SOD/Classic/Demo, Data path, etc.
 
-    -- Load game resources
-    gdata <- loadGameData
+    -- Load game palette & signon screen
+    so  <- loadSignon
+    pal <- loadPalette
 
     -- Initialize SDL system
     SDL.init [InitAudio, InitVideo]
@@ -66,11 +67,12 @@ main = do
     -- @todo Currently we have a limitation with bpp incompatibility.
     -- The VGA uses 6-6-6 scheme while SDL expected 8-8-8. Need to find
     -- a way to transpose the palette.
-    _ <- SDL.setColors screen (palette gdata) 0 -- @todo check for result.
+    _ <- SDL.setColors screen pal 0 -- @todo check for result.
 
     -- initialize game state and run the main loop
-    finalState <- execStateT gameLoop $ Game.initState { currStep = IntroScreen
+    finalState <- execStateT gameLoop $ Game.initState { currStep = IntroBegin
                                                        , screen = screen
-                                                       , gameData = gdata
+                                                       , signon = so
+                                                       , palette = pal
                                                        }
     return ()
