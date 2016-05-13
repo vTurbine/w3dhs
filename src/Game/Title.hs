@@ -5,6 +5,7 @@
 module Game.Title
     ( pg13
     , titlePage
+    , creditsPage
     ) where
 
 
@@ -89,7 +90,6 @@ titlePage_draw surf gdata = do
     -- draw the title
     vwb_DrawPic (Point 0 0) pic
 
-    -- @todo fade in
 
 --
 --
@@ -105,4 +105,33 @@ titlePage = do
     liftIO $ titlePage_draw (screen gstate) gdata
 
     -- wait for input here and process to the title screens
-    put $ gstate { nextSteps = [DelayMs 3000, MainMenu] }
+    put $ gstate { nextSteps = [DelayMs 3000, FadeIn, Credits] }
+
+
+--
+--
+creditsPage_draw :: Surface -> GameData-> IO ()
+creditsPage_draw surf gdata = do
+
+    let
+        pic = (lumps gdata) !! (89 + (12 - 3)) -- CREDITSPIC
+
+    -- draw the title
+    vwb_DrawPic (Point 0 0) pic
+
+
+--
+--
+creditsPage :: StateT GameState IO ()
+creditsPage = do
+    -- get current game state
+    gstate <- get
+
+    let
+        gdata    = gameData gstate
+
+    -- draw the intro screen
+    liftIO $ creditsPage_draw (screen gstate) gdata
+
+    -- wait for input here and process to the title screens
+    put $ gstate { nextSteps = [DelayMs 3000, FadeOut, HighScores] }

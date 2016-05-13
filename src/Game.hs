@@ -69,6 +69,8 @@ updateState = do
         TitlePG13    -> Game.Title.pg13
         --
         TitlePage    -> Game.Title.titlePage
+        --
+        Credits      -> Game.Title.creditsPage
         _            -> return ()
 
     -- update the state
@@ -81,4 +83,4 @@ updateState = do
     -- proceed to the next step
     put $ gstate { currStep  = nstep
                  , nextSteps = drop 1 nsteps
-		 }
+                 }

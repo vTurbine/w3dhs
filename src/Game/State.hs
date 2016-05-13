@@ -12,10 +12,14 @@ data GameStep = IntroBegin
               | IntroEnd
               | TitlePG13
               | TitlePage
+              | Credits
+              | HighScores
               | MainMenu
               | WaitForInput
               | DelayMs Word32
-              | Empty -- @todo really needed?
+              | FadeIn
+              | FadeOut
+              | Empty
               deriving (Show)
 
 -- |Game state record definition
