@@ -75,9 +75,7 @@ pg13 = do
 -}
 
     -- wait for input here and process to the title screens
-    put $ gstate { currStep = DelayMs 3000
-                 , nextStep = TitlePage
-                 }
+    put $ gstate { nextSteps = [DelayMs 3000, TitlePage] }
 
 
 --
@@ -97,17 +95,14 @@ titlePage_draw surf gdata = do
 --
 titlePage :: StateT GameState IO ()
 titlePage = do
-        -- get current game state
+    -- get current game state
     gstate <- get
 
     let
         gdata    = gameData gstate
-        --intorscr = signon gdata
 
     -- draw the intro screen
     liftIO $ titlePage_draw (screen gstate) gdata
 
     -- wait for input here and process to the title screens
-    put $ gstate { currStep = DelayMs 3000
-                 , nextStep = MainMenu
-                 }
+    put $ gstate { nextSteps = [DelayMs 3000, MainMenu] }

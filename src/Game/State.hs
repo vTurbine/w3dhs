@@ -21,7 +21,7 @@ data GameStep = IntroBegin
 -- |Game state record definition
 --
 data GameState = GameState  { currStep      :: GameStep
-                            , nextStep      :: GameStep
+                            , nextSteps     :: [GameStep]
                             , activeKeys    :: [SDLKey]           -- list of active keys
                             , windowX       :: Int
                             , windowY       :: Int

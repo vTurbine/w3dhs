@@ -26,7 +26,7 @@ import Resources
 --
 initState :: GameState
 initState = GameState { currStep    = Empty
-                      , nextStep    = Empty
+                      , nextSteps   = [Empty]
                       , activeKeys  = []
                       , windowX     = 0
                       , windowY     = 0
@@ -51,21 +51,17 @@ updateState = do
     gstate <- get
 
     case (currStep gstate) of
-        --
-        Empty        -> error $ "The state machine is broken"
         -- draw [Intro Screen]
         IntroBegin   -> Game.Intro.introScreen_begin
         --
         LoadResources-> do
                           gdata <- liftIO $ loadGameData
-                          put $ gstate { gameData = gdata
-                                       , nextStep = IntroEnd
-                                       }
+                          put $ gstate { gameData  = gdata }
         --
         IntroEnd     -> Game.Intro.introScreen_end
         --
-        WaitForInput -> if (inputAck gstate)
-                        then put $ gstate { nextStep = WaitForInput }
+        WaitForInput -> if (not $ inputAck gstate)
+                        then put $ gstate { nextSteps = WaitForInput : (nextSteps gstate) }
                         else return ()
         --
         DelayMs ms   -> liftIO $ SDL.delay ms;
@@ -79,7 +75,10 @@ updateState = do
     gstate <- get
 
     let
-      nstep = nextStep gstate
+      nsteps = nextSteps gstate
+      nstep  = head $ nsteps
 
     -- proceed to the next step
-    put $ gstate { currStep = nstep }
+    put $ gstate { currStep  = nstep
+                 , nextSteps = drop 1 nsteps
+		 }

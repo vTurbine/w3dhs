@@ -84,8 +84,8 @@ introScreen_begin = do
     -- draw the intro screen
     liftIO $ introScreen_draw (screen gstate) (signon gstate)
 
-    -- All ok. Can proceed to resource loading
-    put $ gstate { nextStep = LoadResources }
+    -- All ok. Can proceed to resource loading and schedule the IntroEnd
+    put $ gstate { nextSteps = [LoadResources, IntroEnd] }
 
 --
 --
@@ -100,6 +100,4 @@ introScreen_end = do
     us_CPrint "Press a key"
 
     -- wait for input here and process to the title screens
-    put $ gstate { currStep = WaitForInput
-                 , nextStep = TitlePG13
-                 }
+    put $ gstate { nextSteps = [WaitForInput, TitlePG13] }
