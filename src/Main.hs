@@ -50,6 +50,7 @@ gameLoop = do
       -- Clear pressed key
       KeyUp   (Keysym      k _ _) -> modify $ (\s -> s
                                         { activeKeys = filter (/= k) akeys
+                                        , inputAck   = True
                                         })
       _                           -> return ()
 
