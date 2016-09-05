@@ -19,7 +19,7 @@ gameSrcPath = "wolf3d/WOLFSRC/" -- @todo Change in accordance to the cmdline
 
 -- |Path to the game data
 gameBinPath :: FilePath
-gameBinPath = "data/WOLF3D/" -- @todo Change in accordance to the cmdline
+gameBinPath = "data/" -- @todo Change in accordance to the cmdline
 
 -- |The extension of the game's resources
 gameBinExt :: String

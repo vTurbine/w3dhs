@@ -35,6 +35,8 @@ executable w3dhs
                      , Game.Menu
                      , Game.State
                      , Game.Text
+                     , Game.Title
+                     , Game.Loop
                      , Game
                      , SoundManager
                      , Settings

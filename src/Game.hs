@@ -18,6 +18,7 @@ import Game.Intro
 import Game.Title
 import Game.State
 import Game.Text
+import Game.Loop
 import Resources
 
 -- |Initializes the game state
@@ -27,6 +28,8 @@ import Resources
 initState :: GameState
 initState = GameState { currStep    = Empty
                       , nextSteps   = [Empty]
+                      , ticksPrev   = 0
+                      , ticksCurr   = 0
                       , activeKeys  = []
                       , windowX     = 0
                       , windowY     = 0
@@ -35,6 +38,8 @@ initState = GameState { currStep    = Empty
                       , fontColor   = 0
                       , backColor   = 0
                       , inputAck    = False
+                      , viewWidth   = 256
+                      , viewHeight  = 144
                       , screen      = undefined
                       , gameData    = undefined
                       , signon      = undefined
@@ -42,7 +47,7 @@ initState = GameState { currStep    = Empty
                       }
 
 
--- |Updates the game state
+-- | Updates the game state
 -- Implements main game FSM
 -- @todo simplify to "next step"
 --
@@ -52,26 +57,37 @@ updateState = do
 
     case (currStep gstate) of
         -- draw [Intro Screen]
-        IntroBegin   -> Game.Intro.introScreen_begin
+        IntroBegin    -> Game.Intro.introScreen_begin
         --
-        LoadResources-> do
+        LoadResources -> do
                           gdata <- liftIO $ loadGameData
                           put $ gstate { gameData  = gdata }
         --
-        IntroEnd     -> Game.Intro.introScreen_end
+        IntroEnd      -> Game.Intro.introScreen_end
         --
-        WaitForInput -> if (not $ inputAck gstate)
-                        then put $ gstate { nextSteps = WaitForInput : (nextSteps gstate) }
-                        else return ()
+        WaitForInput  -> if (not $ inputAck gstate)
+                         then put $ gstate
+                                { nextSteps = WaitForInput : (nextSteps gstate)
+                                }
+                         else return ()
         --
-        DelayMs ms   -> liftIO $ SDL.delay ms;
+        DelayMs ms    -> if delta > ms
+                         then return ()
+                         else put $ gstate
+                                { nextSteps = DelayMs (ms - delta) : (nextSteps gstate)
+                                }
+                            where
+                              delta = (ticksCurr gstate) - (ticksPrev gstate)
+
+        DelayMsIntr ms-> return ()
         --
-        TitlePG13    -> Game.Title.pg13
+        TitlePG13     -> Game.Title.pg13
         --
-        TitlePage    -> Game.Title.titlePage
+        TitlePage     -> Game.Title.titlePage
         --
-        Credits      -> Game.Title.creditsPage
-        _            -> return ()
+        Credits       -> Game.Title.creditsPage
+        GameLoop      -> Game.Loop.gameLoop
+        _             -> return ()
 
     -- update the state
     gstate <- get

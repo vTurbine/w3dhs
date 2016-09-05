@@ -39,6 +39,21 @@ vwb_Bar s r px = do
     return ()
 
 
+--
+--
+vwb_Hlin x1 x2 y color = undefined
+
+
+--
+--
+vwb_Vlin y1 y2 x color = undefined
+
+
+--
+--
+vwb_Plot (Point x y) color = undefined
+
+
 -- @todo too many black magic there:
 -- - why do I need to add 3x0 after each line if surface width *exactly* the same as line width?
 -- - how to make this code simplier and pretty? Now it looks like piece of crap
