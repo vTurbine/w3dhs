@@ -116,22 +116,20 @@ buildStartFont (hLo:hHi:xs) =
 
 
 -- |Rebuilds 4x4-planes image into common pixel format
--- All credits go to Constantine Zakharchenko and his
+-- All credits go to Constantine Zakharchenko for his
 -- brilliant idea of transformation
--- @todo simplify the code and document it on the wiki
 --
 rebuildLump :: Lump -> Lump
-rebuildLump (Lump w h p) = Lump w h (rebuild p)
+rebuildLump (Lump w h pxs) = Lump w h (shuffle pxs)
     where
-        rebuild p = map (f p) [0..(w * h - 1)]
-        f p i_t = p !! i_s
+        shuffle = riffle . riffle
             where
-                (x_t, y_t) = (i_t `mod` w, i_t `div` w)
-                (x_tb, y_tb) = (x_t `div` 4, y_t `div` 4)
-                (x_tbpos, y_tbpos) = (x_t `mod` 4, y_t `mod` 4)
-                i_s = (x_sb + x_sbpos) + w * (y_sb + y_sbpos)
-                (x_sb, y_sb) = (y_tbpos * (w `div` 4), x_tbpos * (h `div` 4))
-                (x_sbpos, y_sbpos) = (x_tb, y_tb)
+                split pxs = splitAt ((length pxs) `div` 2) pxs
+
+                merge (  [],   []) = []
+                merge (f:fs, s:ss) = f:s:merge (fs, ss)
+
+                riffle ar = merge (split ar)
 
 
 -- |Processes game resources and builds internal structures
