@@ -17,6 +17,7 @@ data Point = Point Int Int
 --
 vwb_DrawPic :: Point -> Lump -> IO ()
 vwb_DrawPic (Point x y) (Lump w h pxs) = do
+
     -- create surface with size of sprite
     surf <- (createRGBSurfaceEndian [HWSurface] w h scrBpp) >>= displayFormat
 
@@ -52,6 +53,18 @@ vwb_Vlin y1 y2 x color = undefined
 --
 --
 vwb_Plot (Point x y) color = undefined
+
+
+-- |
+--
+fadeIn :: IO ()
+fadeIn = return ()
+
+
+-- |
+--
+fadeOut :: IO ()
+fadeOut = return ()
 
 
 -- @todo too many black magic there:
