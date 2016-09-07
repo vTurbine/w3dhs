@@ -70,6 +70,7 @@ initState = GameState { currStep    = Empty
                       , isSpear     = False
                       , startGame   = False
                       , loadedGame  = False
+                      , inGame      = False
                       , died        = undefined -- should be set in `RestartGame`
                       , screen      = undefined
                       , gameData    = undefined
@@ -122,6 +123,7 @@ updateState = do
         --
         Credits       -> Game.Title.creditsPage
         MainMenu      -> Game.Menu.mainMenu
+        MainMenuLoop  -> Game.Menu.mainMenuLoop
         RestartGame   -> Game.Loop.restartGame
         GameLoop      -> Game.Loop.gameLoop
         Pause         -> put $ gstate

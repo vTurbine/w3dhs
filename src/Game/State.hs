@@ -15,6 +15,7 @@ data GameStep = IntroBegin
               | Credits
               | HighScores
               | MainMenu
+              | MainMenuLoop
               | WaitForInput
               | DelayMs    Word32
               | DelayMsInt Word32         -- delay interruptible by user input
@@ -74,4 +75,5 @@ data GameState = GameState  { currStep      :: GameStep
                             , died          :: Bool
                             , startGame     :: Bool
                             , loadedGame    :: Bool
+                            , inGame        :: Bool       -- Flag set by game indicating if a game is in progress
                             }
