@@ -96,6 +96,20 @@ restartGame = do
                  }
 
 
+-- |
+--
+playLoop :: StateT GameState IO ()
+playLoop = do
+    gstate <- get
+
+    let
+        gdata = gameData gstate
+
+    -- actor thinking
+
+    return ()
+
+
 -- |Main game cycle
 --
 gameLoop :: StateT GameState IO ()
@@ -106,5 +120,6 @@ gameLoop = do
         gdata = gameData gstate
 
     -- @todo
+    playLoop
 
     put $ gstate { nextSteps = [GameLoop] }

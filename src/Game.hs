@@ -19,6 +19,7 @@ import Game.Title
 import Game.State
 import Game.Text
 import Game.Loop
+import Game.Menu
 import Resources
 
 -- |Initializes the game state
@@ -67,6 +68,8 @@ initState = GameState { currStep    = Empty
                       -- , victoryflag = False
                       , godMode     = False
                       , isSpear     = False
+                      , startGame   = False
+                      , loadedGame  = False
                       , died        = undefined -- should be set in `RestartGame`
                       , screen      = undefined
                       , gameData    = undefined
@@ -118,6 +121,7 @@ updateState = do
         TitlePage     -> Game.Title.titlePage
         --
         Credits       -> Game.Title.creditsPage
+        MainMenu      -> Game.Menu.mainMenu
         RestartGame   -> Game.Loop.restartGame
         GameLoop      -> Game.Loop.gameLoop
         Pause         -> put $ gstate

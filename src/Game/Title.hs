@@ -118,4 +118,4 @@ creditsPage = do
     liftIO $ creditsPage_draw (screen gstate) gdata
 
     -- wait for input here and process to the title screens
-    put $ gstate { nextSteps = [DelayMsInt 3000, FadeOut, HighScores, RestartGame] }
+    put $ gstate { nextSteps = [DelayMsInt 3000, FadeOut, HighScores, MainMenu] }

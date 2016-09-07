@@ -72,4 +72,6 @@ data GameState = GameState  { currStep      :: GameStep
                             -- variant configuration
                             , isSpear       :: Bool
                             , died          :: Bool
+                            , startGame     :: Bool
+                            , loadedGame    :: Bool
                             }
