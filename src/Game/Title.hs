@@ -54,28 +54,12 @@ pg13 = do
         gdata    = gameData gstate
         --intorscr = signon gdata
 
+    -- startCPMusic INTROSONG
+
     -- draw the intro screen
     liftIO $ pg13_drawBegin (screen gstate) gdata
 
-{-
-
-    VW_FadeOut();
-    VWB_Bar(0,0,320,200,0x82);          // background
-
-    CA_CacheGrChunk (PG13PIC);
-    VWB_DrawPic (216,110,PG13PIC);
-    VW_UpdateScreen ();
-
-    UNCACHEGRCHUNK (PG13PIC);
-
-    VW_FadeIn();
-    IN_UserInput(TickBase*7);
-
-    VW_FadeOut ();
-
--}
-
-    -- wait for input here and process to the title screens
+    -- wait for a while and process to the title screens
     put $ gstate { nextSteps = [DelayMs 3000, TitlePage] }
 
 
@@ -99,7 +83,7 @@ titlePage = do
     gstate <- get
 
     let
-        gdata    = gameData gstate
+        gdata = gameData gstate
 
     -- draw the intro screen
     liftIO $ titlePage_draw (screen gstate) gdata
@@ -134,4 +118,4 @@ creditsPage = do
     liftIO $ creditsPage_draw (screen gstate) gdata
 
     -- wait for input here and process to the title screens
-    put $ gstate { nextSteps = [DelayMs 3000, FadeOut, GameLoop] }
+    put $ gstate { nextSteps = [DelayMsInt 3000, FadeOut, HighScores, RestartGame] }

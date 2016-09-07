@@ -40,6 +40,34 @@ initState = GameState { currStep    = Empty
                       , inputAck    = False
                       , viewWidth   = 256
                       , viewHeight  = 144
+
+                      -- gamestate data
+                      -- , difficulty  = 0
+                      -- , oldscore    = 0
+                      , score       = 0
+                      -- , nextextra   = 0
+                      , lives       = 0
+                      , health      = 0
+                      , ammo        = 0
+                      , keys        = Keys  { goldenKey = False
+                                            , silverKey = False
+                                            }
+                      , weapon      = Knife
+                      -- , faceframe   = 0
+                      -- , attackframe = 0
+                      -- , attackcount = 0
+                      -- , weaponframe = 0
+                      -- , episode     = 0
+                      -- , secretcount = 0
+                      -- , treasuretotal = 0
+                      -- , killtotal   = 0
+                      -- , timeCount   = 0
+                      -- , killx       = 0
+                      -- , killy       = 0
+                      -- , victoryflag = False
+                      , godMode     = False
+                      , isSpear     = False
+                      , died        = undefined -- should be set in `RestartGame`
                       , screen      = undefined
                       , gameData    = undefined
                       , signon      = undefined
@@ -54,6 +82,14 @@ initState = GameState { currStep    = Empty
 updateState :: StateT GameState IO ()
 updateState = do
     gstate <- get
+
+    let
+      delta = (ticksCurr gstate) - (ticksPrev gstate)
+      delay e t = if delta > t
+                  then return ()
+                  else put $ gstate
+                             { nextSteps = e (t - delta) : (nextSteps gstate)
+                             }
 
     case (currStep gstate) of
         -- draw [Intro Screen]
@@ -71,22 +107,22 @@ updateState = do
                                 }
                          else return ()
         --
-        DelayMs ms    -> if delta > ms
-                         then return ()
-                         else put $ gstate
-                                { nextSteps = DelayMs (ms - delta) : (nextSteps gstate)
-                                }
-                            where
-                              delta = (ticksCurr gstate) - (ticksPrev gstate)
+        DelayMs ms    -> delay DelayMs ms
 
-        DelayMsIntr ms-> return ()
+        DelayMsInt ms -> if inputAck gstate
+                         then return ()
+                         else delay DelayMsInt ms
         --
         TitlePG13     -> Game.Title.pg13
         --
         TitlePage     -> Game.Title.titlePage
         --
         Credits       -> Game.Title.creditsPage
+        RestartGame   -> Game.Loop.restartGame
         GameLoop      -> Game.Loop.gameLoop
+        Pause         -> put $ gstate
+                                { nextSteps = [Pause]
+                                }
         _             -> return ()
 
     -- update the state

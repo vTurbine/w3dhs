@@ -1,9 +1,11 @@
 {-
+ |Game loop module implementation.
 
 -}
 
 module Game.Loop
     ( gameLoop
+    , restartGame
     ) where
 
 import          Control.Monad (forM_)
@@ -58,10 +60,11 @@ drawPlayScreen = do
         gdata = gameData gstate
         pic   = (lumps gdata) !! (86 + (12 - 3)) -- STATUSBARPIC
 
-    liftIO $ fadeOut
-
-    -- draw the status bar
-    liftIO $ vwb_DrawPic (Point 0 (200 - statusLines)) pic
+    liftIO $ do
+        fadeOut
+        drawPlayBorder gstate gdata
+        -- draw the status bar
+        vwb_DrawPic (Point 0 (200 - statusLines)) pic
 
     drawFace
     drawHealth
@@ -73,17 +76,35 @@ drawPlayScreen = do
     drawScore
 
 
+{- WL_GAME.C:1238 GameLoop() -}
+
 -- |
 --
-gameLoop :: StateT GameState IO ()
-gameLoop = do
+restartGame :: StateT GameState IO ()
+restartGame = do
     -- get current game state
     gstate <- get
 
     let
         gdata = gameData gstate
 
-    liftIO $ drawPlayBorder gstate gdata    -- @todo this two should have
-    drawPlayScreen                          -- the same signatures
+    setFontColor (0, 15)
+    drawPlayScreen
+
+    put $ gstate { died      = False
+                 , nextSteps = [GameLoop]
+                 }
+
+
+-- |Main game cycle
+--
+gameLoop :: StateT GameState IO ()
+gameLoop = do
+    gstate <- get
+
+    let
+        gdata = gameData gstate
+
+    -- @todo
 
     put $ gstate { nextSteps = [GameLoop] }

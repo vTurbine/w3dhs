@@ -42,6 +42,9 @@ gameLoop = do
     case ev of
       Quit                        -> liftIO $ doExit
       KeyDown (Keysym SDLK_q _ _) -> liftIO $ doExit -- @fixme fast exit
+      KeyDown (Keysym SDLK_p _ _) -> modify $ (\s -> s
+                                        { nextSteps = [Pause]
+                                        })
       -- Set the key pressed
       KeyDown (Keysym      k _ _) -> modify $ (\s -> s
                                         { activeKeys = k : akeys
