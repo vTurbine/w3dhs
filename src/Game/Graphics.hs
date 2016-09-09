@@ -11,9 +11,14 @@ import Resources
 import Settings
 
 data Point = Point Int Int
+type GameColor = Word8
 
---
--- @todo change pic id to enum
+
+getLumpNum :: GraphicNums -> Int
+getLumpNum n = fromEnum n + (12 - 3)
+
+
+-- |
 --
 vwb_DrawPic :: Point -> Lump -> IO ()
 vwb_DrawPic (Point x y) (Lump w h pxs) = do
@@ -40,14 +45,28 @@ vwb_Bar s r px = do
     return ()
 
 
---
---
-vwb_Hlin x1 x2 y color = undefined
+-- |Draws a horizontal line with predefined width
+-- @todo handle the `linewidth` parameter
+vlHLin :: Surface -> Point -> Int -> GameColor -> IO ()
+vlHLin s (Point x y) w c = vwb_Bar s (Rect x y (x + w) (y + 1)) $ fromIntegral c
 
 
+-- |Draws a vertical line with predefined width
+-- @todo handle the `linewidth` parameter
+vlVLin :: Surface -> Point -> Int -> GameColor -> IO ()
+vlVLin s (Point x y) h c = vwb_Bar s (Rect x y (x + 1) (y + h)) $ fromIntegral c
+
+
+-- |A wrapper around the `vlHlin`
 --
+vwb_Hlin :: Surface -> Int -> Int -> Int -> GameColor -> IO ()
+vwb_Hlin s x1 x2 y c = vlHLin s (Point x1 y) (x2 - x1 + 1) c
+
+
+-- |A wrapper around the `vlVLin`
 --
-vwb_Vlin y1 y2 x color = undefined
+vwb_Vlin :: Surface -> Int -> Int -> Int -> GameColor -> IO ()
+vwb_Vlin s y1 y2 x c = vlVLin s (Point x y1) (y2 - y1 + 1) c
 
 
 --

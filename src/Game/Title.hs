@@ -30,7 +30,7 @@ pg13_drawBegin :: Surface -> GameData-> IO ()
 pg13_drawBegin surf gdata = do
 
     let
-        pic = (lumps gdata) !! (88 + (12 - 3))
+        pic = (lumps gdata) !! getLumpNum PG13PIC
 
     -- @todo fade out
 
@@ -69,7 +69,7 @@ titlePage_draw :: Surface -> GameData-> IO ()
 titlePage_draw surf gdata = do
 
     let
-        pic = (lumps gdata) !! (87 + (12 - 3)) -- title pic
+        pic = (lumps gdata) !! getLumpNum TITLEPIC
 
     -- draw the title
     vwb_DrawPic (Point 0 0) pic
@@ -98,7 +98,7 @@ creditsPage_draw :: Surface -> GameData-> IO ()
 creditsPage_draw surf gdata = do
 
     let
-        pic = (lumps gdata) !! (89 + (12 - 3)) -- CREDITSPIC
+        pic = (lumps gdata) !! getLumpNum CREDITSPIC
 
     -- draw the title
     vwb_DrawPic (Point 0 0) pic

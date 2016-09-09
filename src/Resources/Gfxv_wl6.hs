@@ -10,16 +10,19 @@ numChunks = 149
 numPics :: Int
 numPics = 132
 
-data ReadmeLump = H_BJPIC
-                | H_CASTLEPIC
-                | H_BLAZEPIC
-                | H_TOPWINDOWPIC
-                | H_LEFTWINDOWPIC
-                | H_RIGHTWINDOWPIC
-                | H_BOTTOMINFOPIC
-                deriving (Enum)
-
-data ControlsLump   = C_OPTIONSPIC
+data GraphicNums =  DUMMY0
+                    | DUMMY1
+                    | DUMMY2
+                    -- Lump start (Readme)
+                    | H_BJPIC -- =3
+                    | H_CASTLEPIC
+                    | H_BLAZEPIC
+                    | H_TOPWINDOWPIC
+                    | H_LEFTWINDOWPIC
+                    | H_RIGHTWINDOWPIC
+                    | H_BOTTOMINFOPIC
+                    -- Lump start
+                    | C_OPTIONSPIC
                     | C_CURSOR1PIC
                     | C_CURSOR2PIC
                     | C_NOTSELECTEDPIC
@@ -52,60 +55,57 @@ data ControlsLump   = C_OPTIONSPIC
                     | C_SCOREPIC
                     | C_JOY1PIC
                     | C_JOY2PIC
+                    -- Lump start (LevelEnd)
+                    | L_GUYPIC
+                    | L_COLONPIC
+                    | L_NUM0PIC
+                    | L_NUM1PIC
+                    | L_NUM2PIC
+                    | L_NUM3PIC
+                    | L_NUM4PIC
+                    | L_NUM5PIC
+                    | L_NUM6PIC
+                    | L_NUM7PIC
+                    | L_NUM8PIC
+                    | L_NUM9PIC
+                    | L_PERCENTPIC
+                    | L_APIC
+                    | L_BPIC
+                    | L_CPIC
+                    | L_DPIC
+                    | L_EPIC
+                    | L_FPIC
+                    | L_GPIC
+                    | L_HPIC
+                    | L_IPIC
+                    | L_JPIC
+                    | L_KPIC
+                    | L_LPIC
+                    | L_MPIC
+                    | L_NPIC
+                    | L_OPIC
+                    | L_PPIC
+                    | L_QPIC
+                    | L_RPIC
+                    | L_SPIC
+                    | L_TPIC
+                    | L_UPIC
+                    | L_VPIC
+                    | L_WPIC
+                    | L_XPIC
+                    | L_YPIC
+                    | L_ZPIC
+                    | L_EXPOINTPIC
+                    | L_APOSTROPHEPIC
+                    | L_GUY2PIC
+                    | L_BJWINSPIC
+                    -- Lump start (Logo)
+                    | STATUSBARPIC
+                    | TITLEPIC
+                    | PG13PIC
+                    | CREDITSPIC
+                    | HIGHSCORESPIC
                     deriving (Enum)
-
-{- LevelEnd
-        L_GUYPIC,                            // 43
-        L_COLONPIC,                          // 44
-        L_NUM0PIC,                           // 45
-        L_NUM1PIC,                           // 46
-        L_NUM2PIC,                           // 47
-        L_NUM3PIC,                           // 48
-        L_NUM4PIC,                           // 49
-        L_NUM5PIC,                           // 50
-        L_NUM6PIC,                           // 51
-        L_NUM7PIC,                           // 52
-        L_NUM8PIC,                           // 53
-        L_NUM9PIC,                           // 54
-        L_PERCENTPIC,                        // 55
-        L_APIC,                              // 56
-        L_BPIC,                              // 57
-        L_CPIC,                              // 58
-        L_DPIC,                              // 59
-        L_EPIC,                              // 60
-        L_FPIC,                              // 61
-        L_GPIC,                              // 62
-        L_HPIC,                              // 63
-        L_IPIC,                              // 64
-        L_JPIC,                              // 65
-        L_KPIC,                              // 66
-        L_LPIC,                              // 67
-        L_MPIC,                              // 68
-        L_NPIC,                              // 69
-        L_OPIC,                              // 70
-        L_PPIC,                              // 71
-        L_QPIC,                              // 72
-        L_RPIC,                              // 73
-        L_SPIC,                              // 74
-        L_TPIC,                              // 75
-        L_UPIC,                              // 76
-        L_VPIC,                              // 77
-        L_WPIC,                              // 78
-        L_XPIC,                              // 79
-        L_YPIC,                              // 80
-        L_ZPIC,                              // 81
-        L_EXPOINTPIC,                        // 82
-        L_APOSTROPHEPIC,                     // 83
-        L_GUY2PIC,                           // 84
-        L_BJWINSPIC,                         // 85
--}
-
-data LogoLumps  = STATUSBARPIC
-                | TITLEPIC
-                | PG13PIC
-                | CREDITSPIC
-                | HIGHSCORESPIC
-                deriving (Enum)
 
 {- LatchPics
         KNIFEPIC,                            // 91

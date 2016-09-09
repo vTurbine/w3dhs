@@ -6,6 +6,7 @@ module Resources (
     , loadSignon
     , loadConfig
     , loadGameData
+    , module WL6
     ) where
 
 import qualified    Data.ByteString         as B

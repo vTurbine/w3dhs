@@ -35,22 +35,19 @@ menuH = 13 * 9 + 6
 
 
 -- | Clear Menu screen to dark red
---
+-- @todo spear case
 clearMScreen :: Surface -> IO ()
 clearMScreen s = do
-    -- @todo spear case
     surf <- getVideoSurface
     vwb_Bar s (Rect 0 0 320 200) bordColor
 
 
 -- |
---
+-- @todo spear case
 drawStripes :: Surface -> Int -> IO ()
 drawStripes s y = do
-    -- @todo spear case
-
-    vwb_Bar s (Rect 0 y 320 22) 0
-    -- vwb_Hlin 0 319 (y + 23) 0
+    vwb_Bar  s (Rect 0 y 320 22) 0
+    vwb_Hlin s 0 319 (y + 23) 0
 
 
 drawOutline :: Surface -> Rect -> Word32 -> Word32 -> IO ()
@@ -70,6 +67,17 @@ drawMenu :: Surface -> IO ()
 drawMenu s = return ()
 
 
+handleMenu :: StateT GameState IO ()
+handleMenu = do
+    gstate <- get
+
+    let
+        gdata = gameData gstate
+        curs1 = (lumps gdata) !! getLumpNum C_CURSOR1PIC
+
+    liftIO $ vwb_DrawPic (Point 10 10) curs1 -- @fixme
+
+
 -- |
 --
 mainMenu_draw :: GameData -> Bool -> IO ()
@@ -80,8 +88,8 @@ mainMenu_draw gdata ingame = do
     clearMScreen s
 
     let
-        mouseLBack = (lumps gdata) !! (18 + (12 - 3)) -- C_MOUSELBACKPIC
-        options    = (lumps gdata) !! (10 + (12 - 3)) -- C_OPTIONSPIC
+        mouseLBack = (lumps gdata) !! getLumpNum C_MOUSELBACKPIC
+        options    = (lumps gdata) !! getLumpNum C_OPTIONSPIC
 
     vwb_DrawPic (Point 112 184) mouseLBack
     drawStripes s 10
@@ -96,6 +104,7 @@ mainMenuLoop :: StateT GameState IO ()
 mainMenuLoop = do
     gstate <- get
 
+    handleMenu
     -- @todo
 
     let
