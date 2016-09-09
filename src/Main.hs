@@ -97,8 +97,7 @@ main = do
     -- fullscreen, SOD/Classic/Demo, Data path, etc.
     args <- getArgs
 
-    -- Load game palette & signon screen
-    so  <- loadSignon
+    -- Load game palette
     pal <- loadPalette
 
     -- Initialize SDL system
@@ -116,8 +115,7 @@ main = do
     -- Initialize game state and run the main loop
     finalState <- execStateT gameLoop $
                     Game.initState { nextSteps = [IntroBegin]
-                                   , screen = screen
-                                   , signon = so
-                                   , palette = pal
+                                   , screen    = screen
+                                   , palette   = pal
                                    }
     return ()

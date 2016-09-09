@@ -66,7 +66,6 @@ initState = GameState { currStep    = Empty
                       , died        = undefined -- should be set in `RestartGame`
                       , screen      = undefined
                       , gameData    = undefined
-                      , signon      = undefined
                       , palette     = undefined
                       }
 

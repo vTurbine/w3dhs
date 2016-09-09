@@ -46,11 +46,13 @@ introScreen_begin = do
     -- get current game state
     gstate <- get
 
+    signon <- liftIO $ loadSignon
+
     -- draw the intro screen
     --
 
     -- Draw background image
-    liftIO $ setSurfaceData (screen gstate) (signon gstate) -- @todo move signon into gamedata
+    liftIO $ setSurfaceData (screen gstate) signon
 
     -- Fill the boxes in the signon screen
 

@@ -67,7 +67,6 @@ data GameState = GameState  { currStep      :: GameStep
                             , weapon        :: Weapon
                             , godMode       :: Bool
                             , screen        :: Surface
-                            , signon        :: [Word8]
                             , palette       :: [Color]
                             , gameData      :: GameData
                             -- variant configuration
