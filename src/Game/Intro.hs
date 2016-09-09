@@ -15,15 +15,14 @@
 -}
 
 module Game.Intro
-    ( introScreen_begin
-    , introScreen_end
+    ( introScreenPre
+    , introScreenPost
     ) where
 
 import          Control.Monad (forM_)
 import          Control.Monad.Trans.State
 import          Control.Monad.Trans (liftIO)
 import          Graphics.UI.SDL
-import          Data.Word
 
 -- Internal modules import
 import          Game.Graphics
@@ -32,21 +31,21 @@ import          Game.Text
 import          Resources
 
 
-introMain_color, introEMS_color, introXMS_color, introFill_color :: GameColor
-introMain_color = 0x6C
-introEMS_color  = 0x6C
-introXMS_color  = 0x6C
-introFill_color = 14
+introMainColor, introEMSColor, introXMSColor, introFillColor :: GameColor
+introMainColor = 0x6C
+introEMSColor  = 0x6C
+introXMSColor  = 0x6C
+introFillColor = 14
 
 
 --
 --
-introScreen_begin :: StateT GameState IO ()
-introScreen_begin = do
+introScreenPre :: StateT GameState IO ()
+introScreenPre = do
     -- get current game state
     gstate <- get
 
-    signon <- liftIO $ loadSignon
+    signon <- liftIO loadSignon
 
     -- draw the intro screen
     --
@@ -58,24 +57,24 @@ introScreen_begin = do
 
     -- Of course we have a lot of memory, especially the
     -- ..Main one,
-    forM_ [0..9] (\i -> vwbBar (Rect  49 (163 - 8 * i) 6 5) introMain_color)
+    forM_ [0..9] (\i -> vwbBar (Rect  49 (163 - 8 * i) 6 5) introMainColor)
 
     -- EMS..,
-    forM_ [0..9] (\i -> vwbBar (Rect  89 (163 - 8 * i) 6 5) introEMS_color)
+    forM_ [0..9] (\i -> vwbBar (Rect  89 (163 - 8 * i) 6 5) introEMSColor)
 
     -- ..and XMS for sure.
-    forM_ [0..9] (\i -> vwbBar (Rect 129 (163 - 8 * i) 6 5) introXMS_color)
+    forM_ [0..9] (\i -> vwbBar (Rect 129 (163 - 8 * i) 6 5) introXMSColor)
 
         -- mouse present
-    vwbBar (Rect 164  82 12 2) introFill_color
+    vwbBar (Rect 164  82 12 2) introFillColor
     -- joystick present
-    vwbBar (Rect 164 105 12 2) introFill_color
+    vwbBar (Rect 164 105 12 2) introFillColor
     -- AdLib present
-    vwbBar (Rect 164 128 12 2) introFill_color
+    vwbBar (Rect 164 128 12 2) introFillColor
     -- SoundBlaster present
-    vwbBar (Rect 164 151 12 2) introFill_color
+    vwbBar (Rect 164 151 12 2) introFillColor
     -- SoundSource present
-    vwbBar (Rect 164 174 12 2) introFill_color
+    vwbBar (Rect 164 174 12 2) introFillColor
 
     -- clear the "One moment.." text
     vwbBar (Rect 0 189 300 11) 41
@@ -85,8 +84,8 @@ introScreen_begin = do
 
 --
 --
-introScreen_end :: StateT GameState IO ()
-introScreen_end = do
+introScreenPost :: StateT GameState IO ()
+introScreenPost = do
     -- get current game state
     gstate <- get
 
