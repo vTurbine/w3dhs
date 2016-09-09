@@ -32,46 +32,11 @@ import          Game.Text
 import          Resources
 
 
-introMain_color, introEMS_color, introXMS_color, introFill_color :: Word32
+introMain_color, introEMS_color, introXMS_color, introFill_color :: GameColor
 introMain_color = 0x6C
 introEMS_color  = 0x6C
 introXMS_color  = 0x6C
 introFill_color = 14
-
-
--- |An IO wrapper for surface-related operations
--- Reduces amount of 'liftIO' operations
---
-introScreen_draw :: Surface -> [Word8] -> IO ()
-introScreen_draw surf bg = do
-    -- Draw background image
-    setSurfaceData surf bg
-
-    -- Fill the boxes in the signon screen
-
-    -- Of course we have a lot of memory, especially the
-    -- ..Main one,
-    forM_ [0..9] (\i -> vwb_Bar surf (Rect  49 (163 - 8 * i) 6 5) introMain_color)
-
-    -- EMS..,
-    forM_ [0..9] (\i -> vwb_Bar surf (Rect  89 (163 - 8 * i) 6 5) introEMS_color)
-
-    -- ..and XMS for sure.
-    forM_ [0..9] (\i -> vwb_Bar surf (Rect 129 (163 - 8 * i) 6 5) introXMS_color)
-
-        -- mouse present
-    vwb_Bar surf (Rect 164  82 12 2) introFill_color
-    -- joystick present
-    vwb_Bar surf (Rect 164 105 12 2) introFill_color
-    -- AdLib present
-    vwb_Bar surf (Rect 164 128 12 2) introFill_color
-    -- SoundBlaster present
-    vwb_Bar surf (Rect 164 151 12 2) introFill_color
-    -- SoundSource present
-    vwb_Bar surf (Rect 164 174 12 2) introFill_color
-
-    -- clear the "One moment.." text
-    vwb_Bar surf (Rect 0 189 300 11) 41
 
 
 --
@@ -82,7 +47,36 @@ introScreen_begin = do
     gstate <- get
 
     -- draw the intro screen
-    liftIO $ introScreen_draw (screen gstate) (signon gstate)
+    --
+
+    -- Draw background image
+    liftIO $ setSurfaceData (screen gstate) (signon gstate) -- @todo move signon into gamedata
+
+    -- Fill the boxes in the signon screen
+
+    -- Of course we have a lot of memory, especially the
+    -- ..Main one,
+    forM_ [0..9] (\i -> vwbBar (Rect  49 (163 - 8 * i) 6 5) introMain_color)
+
+    -- EMS..,
+    forM_ [0..9] (\i -> vwbBar (Rect  89 (163 - 8 * i) 6 5) introEMS_color)
+
+    -- ..and XMS for sure.
+    forM_ [0..9] (\i -> vwbBar (Rect 129 (163 - 8 * i) 6 5) introXMS_color)
+
+        -- mouse present
+    vwbBar (Rect 164  82 12 2) introFill_color
+    -- joystick present
+    vwbBar (Rect 164 105 12 2) introFill_color
+    -- AdLib present
+    vwbBar (Rect 164 128 12 2) introFill_color
+    -- SoundBlaster present
+    vwbBar (Rect 164 151 12 2) introFill_color
+    -- SoundSource present
+    vwbBar (Rect 164 174 12 2) introFill_color
+
+    -- clear the "One moment.." text
+    vwbBar (Rect 0 189 300 11) 41
 
     -- All ok. Can proceed to resource loading and schedule the IntroEnd
     put $ gstate { nextSteps = [LoadResources, IntroEnd] }

@@ -33,7 +33,7 @@ menuY =  55
 menuW = 178
 menuH = 13 * 9 + 6
 
-
+{-
 -- | Clear Menu screen to dark red
 -- @todo spear case
 clearMScreen :: Surface -> IO ()
@@ -97,6 +97,7 @@ mainMenu_draw gdata ingame = do
 
     drawWindow s (Rect (menuX - 8) (menuY - 3) menuW menuH) bkgdColor
     drawMenu s
+-}
 
 -- |
 --
@@ -104,7 +105,7 @@ mainMenuLoop :: StateT GameState IO ()
 mainMenuLoop = do
     gstate <- get
 
-    handleMenu
+    --handleMenu
     -- @todo
 
     let
@@ -123,7 +124,7 @@ us_ControlPanel key = do
 
     -- @todo
 
-    liftIO $ mainMenu_draw (gameData gstate) (inGame gstate)
+    -- liftIO $ mainMenu_draw (gameData gstate) (inGame gstate)
     -- menuFadeIn
 
     mainMenuLoop

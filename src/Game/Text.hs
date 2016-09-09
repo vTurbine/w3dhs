@@ -59,7 +59,7 @@ us_CPrint str = do
         col = fromIntegral $ fontColor gstate
 
     -- draw the string on the surface
-    liftIO $ vw_DrawPropString (Rect px py sWidth sHeight) str font col
+    vwDrawPropString (Rect px py sWidth sHeight) str font col
 
     put $ gstate { printY = py + sHeight }
     return ()

@@ -28,18 +28,20 @@ statusLines = 40
 
 -- |
 --
-drawPlayBorder :: GameState -> GameData -> IO ()
-drawPlayBorder gstate gdata = do
+drawPlayBorder :: StateT GameState IO ()
+drawPlayBorder = do
+    gstate <- get
 
     let
+        gdata = gameData gstate
+
         vw   = viewWidth gstate
         vh   = viewHeight gstate
         xl   = 160 - vw `div` 2
         yl   = (200 - statusLines - vh) `div` 2
-        surf = screen gstate
 
-    vwb_Bar surf (Rect 0 0 320 (200 - statusLines)) 127
-    vwb_Bar surf (Rect xl yl vw vh) 0
+    vwbBar (Rect 0 0 320 (200 - statusLines)) 127
+    vwbBar (Rect xl yl vw vh) 0
 
     -- vwb_Hlin surf (xl - 1) (xl + vw) (yl -  1)   0
     -- vwb_Hlin surf (xl - 1) (xl + vw) (yl + vh) 125
@@ -53,18 +55,13 @@ drawPlayBorder gstate gdata = do
 --
 drawPlayScreen :: StateT GameState IO ()
 drawPlayScreen = do
-    -- get current game state
-    gstate <- get
 
-    let
-        gdata = gameData gstate
-        pic   = (lumps gdata) !! (86 + (12 - 3)) -- STATUSBARPIC
+    -- fadeOut
 
-    liftIO $ do
-        fadeOut
-        drawPlayBorder gstate gdata
-        -- draw the status bar
-        vwb_DrawPic (Point 0 (200 - statusLines)) pic
+    drawPlayBorder
+    -- draw the status bar
+
+    vwbDrawPic (Point 0 (200 - statusLines)) STATUSBARPIC
 
     drawFace
     drawHealth

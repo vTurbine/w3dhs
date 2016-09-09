@@ -1,23 +1,15 @@
 module Game
-    ( vwb_Bar
-    , setSurfaceData
-    , GameState(..)
+    ( GameState(..)
     , initState
     , updateState
-    , setFontColor
-    , us_CPrint
     ) where
 
 import Control.Monad.Trans
 import Control.Monad.Trans.State
-import Data.Word
-import Graphics.UI.SDL as SDL
 
-import Game.Graphics
 import Game.Intro
 import Game.Title
 import Game.State
-import Game.Text
 import Game.Loop
 import Game.Menu
 import Resources
