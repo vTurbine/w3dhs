@@ -43,10 +43,10 @@ drawPlayBorder = do
     vwbBar (Rect 0 0 320 (200 - statusLines)) 127
     vwbBar (Rect xl yl vw vh) 0
 
-    -- vwb_Hlin surf (xl - 1) (xl + vw) (yl -  1)   0
-    -- vwb_Hlin surf (xl - 1) (xl + vw) (yl + vh) 125
-    -- vwb_Vlin surf (yl - 1) (yl + vh) (xl -  1)   0
-    -- vwb_Vlin surf (yl - 1) (yl + vh) (xl + vw) 125
+    --vwbHlin (xl - 1) (xl + vw) (yl -  1)   0
+    --vwbHlin (xl - 1) (xl + vw) (yl + vh) 125
+    --vwbVlin (yl - 1) (yl + vh) (xl -  1)   0
+    --vwbVlin (yl - 1) (yl + vh) (xl + vw) 125
 
     -- vwb_Plot surf (Point (xl - 1) (yl + vw)) 124
 
@@ -81,9 +81,6 @@ restartGame :: StateT GameState IO ()
 restartGame = do
     -- get current game state
     gstate <- get
-
-    let
-        gdata = gameData gstate
 
     setFontColor (0, 15)
     drawPlayScreen

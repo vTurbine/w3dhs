@@ -3,8 +3,7 @@
 -}
 
 module Game.Menu
-    ( us_ControlPanel
-    , mainMenu
+    ( mainMenu
     , mainMenuLoop
     ) where
 
@@ -20,7 +19,7 @@ import              Game.State
 import              Resources
 
 
-bordColor, bord2Color, deactive, bkgdColor, stripe :: Word32
+bordColor, bord2Color, deactive, bkgdColor, stripe :: GameColor
 bordColor  = 0x29
 bord2Color = 0x23
 deactive   = 0x2b
@@ -31,38 +30,55 @@ menuX, menuY, menuW, menuH :: Int
 menuX =  76
 menuY =  55
 menuW = 178
-menuH = 13 * 9 + 6
+menuH = 13 * 10 + 6
 
-{-
--- | Clear Menu screen to dark red
--- @todo spear case
-clearMScreen :: Surface -> IO ()
-clearMScreen s = do
-    surf <- getVideoSurface
-    vwb_Bar s (Rect 0 0 320 200) bordColor
+
+-- |Clears Menu screen to dark red
+-- @todo SOD case
+clearMScreen :: StateT GameState IO ()
+clearMScreen = vwbBar (Rect 0 0 320 200) bordColor
 
 
 -- |
 -- @todo spear case
-drawStripes :: Surface -> Int -> IO ()
-drawStripes s y = do
-    vwb_Bar  s (Rect 0 y 320 22) 0
-    vwb_Hlin s 0 319 (y + 23) 0
+drawStripes :: Int -> StateT GameState IO ()
+drawStripes y = do
+    gstate <- get
 
+    let
+        by = if isSpear gstate
+                then 24
+                else 22
+        w  = if isSpear gstate
+                then 22
+                else 23
+        c  = if isSpear gstate
+                then stripe
+                else 0
 
-drawOutline :: Surface -> Rect -> Word32 -> Word32 -> IO ()
-drawOutline s r c1 c2 = do
-    return ()
+    vwbBar  (Rect 0 y 320 by) 0
+    vwbHlin 0 319 (y + w) c
 
 
 -- |
 --
-drawWindow :: Surface -> Rect -> Word32 -> IO ()
-drawWindow s r wc = do
-    vwb_Bar s r wc
-    drawOutline s r bord2Color deactive
+drawOutline :: Rect -> GameColor -> GameColor -> StateT GameState IO ()
+drawOutline (Rect x y w h) c1 c2 = do
+    vwbHlin x (x + w)      y  c2
+    vwbVlin y (y + h)      x  c2
+    vwbHlin x (x + w) (y + h) c1
+    vwbVlin y (y + h) (x + w) c1
 
 
+-- |
+--
+drawWindow :: Rect -> GameColor -> StateT GameState IO ()
+drawWindow r wc = do
+    vwbBar r wc
+    drawOutline r bord2Color deactive
+
+
+{-
 drawMenu :: Surface -> IO ()
 drawMenu s = return ()
 
@@ -77,27 +93,20 @@ handleMenu = do
 
     liftIO $ vwb_DrawPic (Point 10 10) curs1 -- @fixme
 
-
+-}
 -- |
 --
-mainMenu_draw :: GameData -> Bool -> IO ()
-mainMenu_draw gdata ingame = do
+drawMainMenu :: StateT GameState IO ()
+drawMainMenu = do
+    clearMScreen
 
-    s <- getVideoSurface
+    vwbDrawPic (Point 112 184) C_MOUSELBACKPIC
+    drawStripes 10
+    vwbDrawPic (Point  84   0) C_OPTIONSPIC
 
-    clearMScreen s
+    drawWindow (Rect (menuX - 8) (menuY - 3) menuW menuH) bkgdColor
+    --drawMenu
 
-    let
-        mouseLBack = (lumps gdata) !! getLumpNum C_MOUSELBACKPIC
-        options    = (lumps gdata) !! getLumpNum C_OPTIONSPIC
-
-    vwb_DrawPic (Point 112 184) mouseLBack
-    drawStripes s 10
-    vwb_DrawPic (Point  84   0) options
-
-    drawWindow s (Rect (menuX - 8) (menuY - 3) menuW menuH) bkgdColor
-    drawMenu s
--}
 
 -- |
 --
@@ -118,13 +127,15 @@ mainMenuLoop = do
 
 -- |
 --
-us_ControlPanel :: Maybe SDLKey -> StateT GameState IO ()
-us_ControlPanel key = do
-    gstate <- get
+usControlPanel :: Maybe SDLKey -> StateT GameState IO ()
+usControlPanel key = do
 
-    -- @todo
+    --cpCheckQuick
+    --startCPMusic MENUSONG
 
-    -- liftIO $ mainMenu_draw (gameData gstate) (inGame gstate)
+    -- @todo handle scancode
+
+    drawMainMenu
     -- menuFadeIn
 
     mainMenuLoop
@@ -136,6 +147,6 @@ mainMenu :: StateT GameState IO ()
 mainMenu = do
     gstate <- get
 
-    us_ControlPanel Nothing
+    usControlPanel Nothing
 
     put $ gstate { nextSteps = [MainMenuLoop] }

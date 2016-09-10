@@ -25,27 +25,33 @@ import          Game.State
 import          Resources
 import          Utils
 
+
+statusLines :: Int
+statusLines = 40
+
+
 -- |Draws a number in given location
 --
-latchNumber :: GameData -> Point -> Int -> Int -> IO ()
-latchNumber gdata (Point x y) w n = do
+latchNumber :: Point -> Int -> Int -> StateT GameState IO ()
+latchNumber (Point x y) w n = do
 
     let
-        str = ltoa10 n
+        str    = ltoa10 n
         str_ra = drop (length str) $ replicate w ' ' ++ str
 
-        numLump n = (lumps gdata) !! ((98 + n) + (12 - 3)) -- N_BLANKPIC
+        numLump n = toEnum $ n + fromEnum N_BLANKPIC
 
     -- draw the number
-    forM_ [0..w] (\b -> statusDrawPic (Point (x + b) y) $
-                    numLump $ digitToInt (str_ra !! b))
+    forM_ [0..(w - 1)] (\b -> statusDrawPic (Point (x + b) y) $
+                            numLump $ if str_ra !! b /= ' '
+                                        then 1 + digitToInt (str_ra !! b)
+                                        else 0)
 
 
--- |
+-- |A wrapper around the `vwbDrawPic`
 --
-statusDrawPic :: Point -> Lump -> IO ()
-statusDrawPic (Point x y) lump = do
-    return ()
+statusDrawPic :: Point -> GraphicNums -> StateT GameState IO ()
+statusDrawPic (Point x y) = vwbDrawPic (Point (x * 8) (y + 200 - statusLines))
 
 
 -- |
@@ -65,34 +71,23 @@ drawFace = do
 --
 drawHealth :: StateT GameState IO ()
 drawHealth = do
-    gamestate <- get
-
-    let
-        gdata = gameData gamestate
-
-    liftIO $ latchNumber gdata (Point 21 16) 3 (health gamestate)
+    gstate <- get
+    latchNumber (Point 21 16) 3 (health gstate)
 
 
 -- |Draws player's life counter
 --
 drawLives :: StateT GameState IO ()
 drawLives = do
-    gamestate <- get
-
-    let
-        gdata = gameData gamestate
-
-    liftIO $ latchNumber gdata (Point 14 16) 1 (lives gamestate)
+    gstate <- get
+    latchNumber (Point 14 16) 1 (lives gstate)
 
 
 -- |
 --
 drawLevel :: StateT GameState IO ()
 drawLevel = do
-    gamestate <- get
-
-    let
-        gdata = gameData gamestate
+    gstate <- get
     return () -- @todo add enum for levels
 
 
@@ -100,56 +95,40 @@ drawLevel = do
 --
 drawAmmo :: StateT GameState IO ()
 drawAmmo = do
-    gamestate <- get
-
-    let
-        gdata = gameData gamestate
-
-    liftIO $ latchNumber gdata (Point 27 16) 2 (ammo gamestate)
+    gstate <- get
+    latchNumber (Point 27 16) 2 (ammo gstate)
 
 
 -- |Draws the keys collected by player
 --
 drawKeys :: StateT GameState IO ()
 drawKeys = do
-    gamestate <- get
+    gstate <- get
 
-    let
-        gdata = gameData gamestate
-        nokey = (lumps gdata) !! (95 + (12 - 3)) -- NOKEYPIC
-        gkey  = (lumps gdata) !! (96 + (12 - 3)) -- GOLDKEYPIC
-        skey  = (lumps gdata) !! (97 + (12 - 3)) -- SILVERKEYPIC
+    statusDrawPic (Point 30  4) $ if goldenKey $ keys gstate
+                                  then GOLDKEYPIC
+                                  else NOKEYPIC
 
-    liftIO $ do
-        statusDrawPic (Point 30  4) $ if goldenKey $ keys gamestate -- @todo
-                                      then gkey
-                                      else nokey
-
-        statusDrawPic (Point 30 20) $ if silverKey $ keys gamestate -- @todo
-                                      then skey
-                                      else nokey
+    statusDrawPic (Point 30 20) $ if silverKey $ keys gstate
+                                  then SILVERKEYPIC
+                                  else NOKEYPIC
 
 
 -- |Draws player's selected weapon
 --
 drawWeapon :: StateT GameState IO ()
 drawWeapon = do
-    gamestate <- get
+    gstate <- get
 
     let
-        gdata = gameData gamestate
-        weapLump n = (lumps gdata) !! ((91 + n) + (12 - 3)) -- KNIFEPIC
+        weapLump n = toEnum $ n + fromEnum KNIFEPIC
 
-    liftIO $ statusDrawPic (Point 32 8) $ weapLump (fromEnum $ weapon gamestate)
+    statusDrawPic (Point 32 8) $ weapLump (fromEnum $ weapon gstate)
 
 
 -- |Draws player's score value in status bar
 --
 drawScore :: StateT GameState IO ()
 drawScore = do
-    gamestate <- get
-
-    let
-        gdata = gameData gamestate
-
-    liftIO $ latchNumber gdata (Point 6 16) 6 (score gamestate)
+    gstate <- get
+    latchNumber (Point 6 16) 6 (score gstate)
