@@ -8,6 +8,7 @@ module Game.Graphics
     , vwbBar
     , vwbVlin
     , vwbHlin
+    , vwbPlot
     , vwDrawPropString
     , setSurfaceData
     , Point(..)
@@ -76,13 +77,13 @@ vwbBar r c = do
 -- |Draws a horizontal line with predefined width
 -- @todo handle the `linewidth` parameter
 vlHLin :: Point -> Int -> GameColor -> StateT GameState IO ()
-vlHLin (Point x y) w c = vwbBar (Rect x y (x + w) (y + 1)) c
+vlHLin (Point x y) w c = vwbBar (Rect x y w 1) c
 
 
 -- |Draws a vertical line with predefined width
 -- @todo handle the `linewidth` parameter
 vlVLin :: Point -> Int -> GameColor -> StateT GameState IO ()
-vlVLin (Point x y) h c = vwbBar (Rect x y (x + 1) (y + h)) c
+vlVLin (Point x y) h c = vwbBar (Rect x y 1 h) c
 
 
 -- |A wrapper around the `vlHlin`
@@ -97,9 +98,10 @@ vwbVlin :: Int -> Int -> Int -> GameColor -> StateT GameState IO ()
 vwbVlin y1 y2 x c = vlVLin (Point x y1) (y2 - y1 + 1) c
 
 
+-- |Draws a point with specified color at given coordinates
 --
---
-vwb_Plot (Point x y) color = undefined
+vwbPlot :: Point -> GameColor -> StateT GameState IO ()
+vwbPlot (Point x y) c = return () -- @fixme fillRect x y 1 1 seems don't work
 
 
 -- |
