@@ -42,6 +42,10 @@ data Weapon = Knife
               deriving (Show, Enum)
 
 
+-- |
+--
+type GameColor = Word8
+
 -- |Game state record definition
 --
 data GameState = GameState  { currStep      :: GameStep
@@ -49,12 +53,16 @@ data GameState = GameState  { currStep      :: GameStep
                             , ticksPrev     :: Word32
                             , ticksCurr     :: Word32      -- ticks passed since last iteration
                             , activeKeys    :: [SDLKey]    -- list of active keys
+                            -- ID_US_1.C globals {
                             , windowX       :: Int
                             , windowY       :: Int
+                            , windowW       :: Int
+                            , windowH       :: Int
                             , printX        :: Int
                             , printY        :: Int
-                            , fontColor     :: Int
-                            , backColor     :: Int
+                            -- }
+                            , fontColor     :: GameColor
+                            , backColor     :: GameColor
                             , inputAck      :: Bool        -- is any input event occured
                             , viewWidth     :: Int
                             , viewHeight    :: Int
@@ -66,13 +74,21 @@ data GameState = GameState  { currStep      :: GameStep
                             , keys          :: Keys
                             , weapon        :: Weapon
                             , godMode       :: Bool
-                            , screen        :: Surface
-                            , palette       :: [Color]
-                            , gameData      :: GameData
+                            , timeCount     :: Int
+                            , secretTotal   :: Int
+                            , killTotal     :: Int
+                            , treasureTotal :: Int
+                            , secretCount   :: Int
+                            , killCount     :: Int
+                            , treasureCount :: Int
                             -- variant configuration
                             , isSpear       :: Bool
                             , died          :: Bool
                             , startGame     :: Bool
                             , loadedGame    :: Bool
                             , inGame        :: Bool       -- Flag set by game indicating if a game is in progress
+                            --
+                            , screen        :: Surface
+                            , palette       :: [Color]
+                            , gameData      :: GameData
                             }

@@ -12,7 +12,6 @@ module Game.Graphics
     , vwDrawPropString
     , setSurfaceData
     , Point(..)
-    , GameColor(..)
     ) where
 
 import              Control.Monad.Trans.State
@@ -31,8 +30,6 @@ import              Settings
 
 
 data Point      = Point Int Int
-type GameColor  = Word8
-
 
 getLumpNum :: GraphicNums -> Int
 getLumpNum n = fromEnum n + (12 - 3)

@@ -89,10 +89,10 @@ introScreenPost = do
     -- get current game state
     gstate <- get
 
-    setFontColor (14,   4)
-    setTextPos   ( 0, 190)
+    setFontColor (14, 4)
+    setTextPos   (Point 0 190)
 
-    us_CPrint "Press a key"
+    usCPrint "Press a key"
 
     -- wait for input here and process to the title screens
     put $ gstate { nextSteps = [WaitForInput, TitlePG13] }

@@ -76,6 +76,7 @@ gameLoop = do
 
     gstate' <- get
 
+    liftIO $ print $ "Input ack: " ++ show (inputAck gstate')
     liftIO $ print (activeKeys gstate')
 
     -- Reset game state

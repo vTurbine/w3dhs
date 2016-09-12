@@ -13,7 +13,7 @@ import Settings
 
 -- |Sets font and background color
 --
-setFontColor :: (Int, Int) -> StateT GameState IO ()
+setFontColor :: (GameColor, GameColor) -> StateT GameState IO ()
 setFontColor (fc, bc) = do
     gameState <- get
     put $ gameState { fontColor = fc, backColor = bc }
@@ -22,8 +22,8 @@ setFontColor (fc, bc) = do
 
 -- |Sets position for text output
 --
-setTextPos :: (Int, Int) -> StateT GameState IO ()
-setTextPos (px, py) = do
+setTextPos :: Point -> StateT GameState IO ()
+setTextPos (Point px py) = do
     gameState <- get
     put $ gameState { printX = px, printY = py }
     return ()
@@ -31,8 +31,8 @@ setTextPos (px, py) = do
 
 -- |Returns size of the string in pixels
 --
-vwl_MeasureString :: String -> StateT GameState IO (Int, Int)
-vwl_MeasureString str = do
+vwlMeasureString :: String -> StateT GameState IO (Int, Int)
+vwlMeasureString str = do
     gstate <- get
 
     let
@@ -43,13 +43,19 @@ vwl_MeasureString str = do
     return (width, gHeight (font !! 0)) -- we have the height for all glyphs
 
 
+-- | Prints a string in the current window. Newlines are supported
+-- @todo
+usPrint :: String -> StateT GameState IO ()
+usPrint str = return ()
+
+
 -- |Prints a string centered on the current line
 --
-us_CPrint :: String -> StateT GameState IO ()
-us_CPrint str = do
+usCPrint :: String -> StateT GameState IO ()
+usCPrint str = do
     gstate <- get
 
-    (sWidth, sHeight) <- vwl_MeasureString str
+    (sWidth, sHeight) <- vwlMeasureString str
 
     let
         gdata = gameData gstate

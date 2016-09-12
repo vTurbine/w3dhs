@@ -1,3 +1,7 @@
+{-
+ |
+-}
+
 module Game
     ( GameState(..)
     , initState
@@ -26,6 +30,8 @@ initState = GameState { currStep    = Empty
                       , activeKeys  = []
                       , windowX     = 0
                       , windowY     = 0
+                      , windowW     = 0
+                      , windowH     = 0
                       , printX      = 0
                       , printY      = 0
                       , fontColor   = 0
@@ -51,10 +57,15 @@ initState = GameState { currStep    = Empty
                       -- , attackcount = 0
                       -- , weaponframe = 0
                       -- , episode     = 0
-                      -- , secretcount = 0
-                      -- , treasuretotal = 0
-                      -- , killtotal   = 0
-                      -- , timeCount   = 0
+                      --
+                      , timeCount     = undefined -- this group should be set
+                      , secretTotal   = undefined -- in `setupGameLevel`
+                      , secretCount   = undefined
+                      , killTotal     = undefined
+                      , treasureTotal = undefined
+                      , killCount     = undefined
+                      , treasureCount = undefined
+                      --
                       -- , killx       = 0
                       -- , killy       = 0
                       -- , victoryflag = False
@@ -91,7 +102,7 @@ updateState = do
         IntroBegin    -> Game.Intro.introScreenPre
         --
         LoadResources -> do
-                          gdata <- liftIO $ loadGameData
+                          gdata <- liftIO loadGameData
                           put $ gstate { gameData  = gdata }
         --
         IntroEnd      -> Game.Intro.introScreenPost
@@ -133,3 +144,8 @@ updateState = do
     put $ gstate { currStep  = nstep
                  , nextSteps = drop 1 nsteps
                  }
+
+
+-- |
+--
+-- runWhen :: @todo
