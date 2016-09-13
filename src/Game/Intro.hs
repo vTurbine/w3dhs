@@ -92,6 +92,10 @@ introScreenPost = do
     setFontColor (14, 4)
     setTextPos   (Point 0 190)
 
+    modify (\s -> s { windowX =   0 -- @todo setWindowRect ?
+                    , windowW = 320
+                    })
+
     usCPrint "Press a key"
 
     -- wait for input here and process to the title screens

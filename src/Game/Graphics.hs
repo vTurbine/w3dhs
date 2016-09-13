@@ -9,6 +9,7 @@ module Game.Graphics
     , vwbVlin
     , vwbHlin
     , vwbPlot
+    , vwlMeasureString
     , vwDrawPropString
     , setSurfaceData
     , Point(..)
@@ -113,13 +114,36 @@ fadeOut :: IO ()
 fadeOut = return ()
 
 
+-- |Returns size of the string in pixels
+--
+vwlMeasureString :: String -> StateT GameState IO (Int, Int)
+vwlMeasureString str = do
+    gstate <- get
+
+    let
+        gdata = gameData gstate
+        font  = startFont gdata
+        width = sum $ map (\c -> gWidth (font !! ord c)) str
+
+    return (width, gHeight (font !! 0)) -- we have the height for all glyphs
+
+
 -- @todo too many black magic there:
 -- - why do I need to add 3x0 after each line if surface width *exactly* the same as line width?
 -- - how to make this code simplier and pretty? Now it looks like piece of crap
 --
-vwDrawPropString :: Rect -> String -> [Glyph] -> Word8 -> StateT GameState IO ()
-vwDrawPropString r@(Rect x y w h) str f col = do
+vwDrawPropString :: Int -> Int -> String -> StateT GameState IO ()
+vwDrawPropString px py str = do
     gstate <- get
+
+    (w,h) <- vwlMeasureString str
+
+    let
+        gdata = gameData gstate
+        f     = startFont gdata -- @todo `fontNumber`
+        col   = fromIntegral $ fontColor gstate
+        r     = (Rect px py w h)
+
     -- render the string
     let
         sdata = take (w * h) $ concatMap (\i -> (concatMap (foo i) str)++[0,0,0]) [0..(h - 1)]

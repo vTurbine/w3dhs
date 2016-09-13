@@ -3,11 +3,10 @@ module Game.Text where
 import Control.Monad.Trans
 import Control.Monad.Trans.State
 import Data.Char
-import Graphics.UI.SDL
+
 
 import Game.Graphics
 import Game.State
-import Resources
 import Settings
 
 
@@ -23,49 +22,66 @@ setFontColor (fc, bc) = do
 -- |Sets position for text output
 --
 setTextPos :: Point -> StateT GameState IO ()
-setTextPos (Point px py) = do
-    gameState <- get
-    put $ gameState { printX = px, printY = py }
-    return ()
+setTextPos (Point px py) = modify (\s -> s { printX = px
+                                           , printY = py
+                                           })
 
 
--- |Returns size of the string in pixels
+-- |Returns text position
 --
-vwlMeasureString :: String -> StateT GameState IO (Int, Int)
-vwlMeasureString str = do
+getTextPos :: StateT GameState IO Point
+getTextPos = do
+    gstate <- get
+    return (Point (printX gstate) (printY gstate))
+
+
+
+-- |Prints a string in the current window. Newlines are supported
+--
+usPrint :: String -> StateT GameState IO ()
+usPrint str = do
     gstate <- get
 
-    let
-        gdata = gameData gstate
-        font  = startFont gdata
-        width = sum $ map (\c -> gWidth (font !! ord c)) str
+    printOne (windowX gstate) $ lines str
+        where
+            printOne w (s:[]) = do
+                (Point px py) <- getTextPos
+                vwDrawPropString px py s
 
-    return (width, gHeight (font !! 0)) -- we have the height for all glyphs
+                modify (\s -> s { printX = printX s + w })
+
+            printOne _ (s:ss) = do
+                (Point px py) <- getTextPos
+                vwDrawPropString px py s
+
+                (w, h) <- vwlMeasureString s
+                modify (\s -> s { printX = windowX s
+                                , printY = printY s + h })
+                printOne w ss
 
 
--- | Prints a string in the current window. Newlines are supported
--- @todo
-usPrint :: String -> StateT GameState IO ()
-usPrint str = return ()
+-- |A wrapper around the `usCPrintLine`
+--
+usCPrint :: String -> StateT GameState IO ()
+usCPrint = usCPrintLine
 
 
 -- |Prints a string centered on the current line
---
-usCPrint :: String -> StateT GameState IO ()
-usCPrint str = do
+-- @fixme
+usCPrintLine :: String -> StateT GameState IO ()
+usCPrintLine str = do
     gstate <- get
 
-    (sWidth, sHeight) <- vwlMeasureString str
+    (w, h) <- vwlMeasureString str
+
+    if w > (windowW gstate)
+        then error "usCPrintLine: string exceeds width"
+        else return ()
 
     let
-        gdata = gameData gstate
-        font  = startFont gdata
-        px = round $ fromIntegral ((windowX gstate) + (scrWidth - sWidth)) / 2
+        px = round $ fromIntegral ((windowX gstate) + (scrWidth - w)) / 2
         py = printY gstate
-        col = fromIntegral $ fontColor gstate
 
-    -- draw the string on the surface
-    vwDrawPropString (Rect px py sWidth sHeight) str font col
+    vwDrawPropString px py str
 
-    put $ gstate { printY = py + sHeight }
-    return ()
+    put $ gstate { printY = printY gstate + h }
