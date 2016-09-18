@@ -17,6 +17,7 @@ import          Data.Word
 -- Internal modules import
 import          Game.Agent
 import          Game.Graphics
+import          Game.Play
 import          Game.State
 import          Game.Text
 import          Resources
@@ -86,20 +87,6 @@ restartGame = do
     put $ gstate { died      = False
                  , nextSteps = [GameLoop]
                  }
-
-
--- |
---
-playLoop :: StateT GameState IO ()
-playLoop = do
-    gstate <- get
-
-    let
-        gdata = gameData gstate
-
-    -- actor thinking
-
-    return ()
 
 
 -- |
