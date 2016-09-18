@@ -1,0 +1,6 @@
+{-
+-}
+
+module Resources.PageFile
+    (
+    ) where

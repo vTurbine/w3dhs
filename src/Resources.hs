@@ -20,6 +20,7 @@ import              Resources.Configuration as Config
 import              Resources.Dictionary    as Huff
 import              Resources.Header        as Header
 import              Resources.OMF           as OMF
+import              Resources.PageFile      as PM
 import              Resources.Gfxv_wl6      as WL6
 import              Settings
 import              Utils
