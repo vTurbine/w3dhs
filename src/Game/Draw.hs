@@ -15,7 +15,13 @@ vgaClearScreen :: StateT GameState IO ()
 vgaClearScreen = undefined
 
 wallRefresh :: StateT GameState IO ()
-wallRefresh = undefined
+wallRefresh = do
+    gstate <- get
+
+    -- calculate `midangle`, `viewx` and `viewy`
+
+    -- @TODO
+    -- need to re-implement some nasty asm stuff
 
 drawScaleds :: StateT GameState IO ()
 drawScaleds = undefined
@@ -36,8 +42,9 @@ threeDRefresh = do
 
     vgaClearScreen
     wallRefresh
-    drawScaleds
-    drawPlayerWeapon
+
+    drawScaleds         -- draw scaled stuff
+    drawPlayerWeapon    -- draw player's hands
 
     -- 2] `fizzlein` logic
     -- @todo

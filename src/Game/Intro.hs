@@ -65,7 +65,7 @@ introScreenPre = do
     -- ..and XMS for sure.
     forM_ [0..9] (\i -> vwbBar (Rect 129 (163 - 8 * i) 6 5) introXMSColor)
 
-        -- mouse present
+    -- mouse present
     vwbBar (Rect 164  82 12 2) introFillColor
     -- joystick present
     vwbBar (Rect 164 105 12 2) introFillColor
@@ -76,11 +76,10 @@ introScreenPre = do
     -- SoundSource present
     vwbBar (Rect 164 174 12 2) introFillColor
 
-    -- clear the "One moment.." text
-    vwbBar (Rect 0 189 300 11) 41
+    -- @TODO schedule DoJukeBox
 
-    -- All ok. Can proceed to resource loading and schedule the IntroEnd
-    put $ gstate { nextSteps = [LoadResources, IntroEnd] }
+    -- All is ok. Can proceed to resource loading and schedule game initialization
+    put $ gstate { nextSteps = [LoadResources, InitGame] }
 
 --
 --
@@ -88,6 +87,9 @@ introScreenPost :: StateT GameState IO ()
 introScreenPost = do
     -- get current game state
     gstate <- get
+
+    -- clear the "One moment.." text
+    vwbBar       (Rect 0 189 300 11) 41
 
     setFontColor (14, 4)
     setTextPos   (Point 0 190)
@@ -100,3 +102,4 @@ introScreenPost = do
 
     -- wait for input here and process to the title screens
     put $ gstate { nextSteps = [WaitForInput, TitlePG13] }
+

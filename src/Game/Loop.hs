@@ -5,6 +5,7 @@
 
 module Game.Loop
     ( gameLoop
+    , initGame
     , restartGame
     ) where
 
@@ -26,6 +27,19 @@ import          Resources
 statusLines :: Int
 statusLines = 40
 
+-- |Initialize game tables
+--
+initGame :: StateT GameState IO ()
+initGame = do
+    gstate <- get
+
+    -- read config
+    -- build tables
+    -- setup walls
+    -- set view size
+    -- init red shifts
+
+    put $ gstate { nextSteps = [IntroEnd] }
 
 -- |
 --
@@ -89,7 +103,7 @@ restartGame = do
                  }
 
 
--- |
+-- |Reset player's statistics
 --
 setupGameLevel :: StateT GameState IO ()
 setupGameLevel = do

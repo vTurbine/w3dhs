@@ -8,7 +8,9 @@ import Resources
 --
 --
 data GameStep = IntroBegin
-              | LoadResources
+              | LoadResources             -- load and cache game resources
+              | DoJukeBox
+              | InitGame                  -- initialize game tables
               | IntroEnd
               | TitlePG13
               | TitlePage
@@ -36,15 +38,29 @@ data Keys = Keys     { goldenKey :: Bool
 -- |Specified selected weapon
 --
 data Weapon = Knife
-              | Gun
-              | MachineGun
-              | GatlingGun
-              deriving (Show, Enum)
+            | Gun
+            | MachineGun
+            | GatlingGun
+            deriving (Show, Enum)
 
+-- |
+--
+data ActiveType = AcBadObject
+                | AcNo
+                | AcYes
+                | AcAlways
+                deriving (Show, Enum)
 
 -- |
 --
 type GameColor = Word8
+
+-- |Thinking actor structure
+--
+data ObjType = ObjType { activ      :: ActiveType
+                       , angle      :: Int
+                       , hitcount   :: Int
+                       }
 
 -- |Game state record definition
 --

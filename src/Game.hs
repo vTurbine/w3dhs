@@ -100,11 +100,13 @@ updateState = do
     case (currStep gstate) of
         -- draw [Intro Screen]
         IntroBegin    -> Game.Intro.introScreenPre
-        --
+        -- cache game resources
         LoadResources -> do
                           gdata <- liftIO loadGameData
                           put $ gstate { gameData  = gdata }
-        --
+        -- initialize game tables
+        InitGame      -> Game.Loop.initGame
+        -- finish the signon screen
         IntroEnd      -> Game.Intro.introScreenPost
         --
         WaitForInput  -> if (not $ inputAck gstate)
