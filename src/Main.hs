@@ -145,5 +145,6 @@ main = do
       Game.initState { buildVariant = getBuildVariant
                      , screen       = screen
                      , palette      = pal
+                     , paletteLast  = pal
                      }
     return ()

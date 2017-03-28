@@ -38,62 +38,63 @@ data Point      = Point Int Int
 paletteSize :: Int
 paletteSize = 256  -- amount of elements in palette
 
-fadeOutTime :: Word32
-fadeOutTime = 5    -- delay between fade out steps, ms
+fadeTime :: Word32
+fadeTime = 10    -- delay between fade in/out steps, ms
 
 getLumpNum :: GraphicNums -> Int
 getLumpNum n = fromEnum n + (12 - 3)
 
 
--- |Copies specified lump to main surface
+-- | Copies specified lump to main surface
 --
 vwbDrawPic :: Point -> GraphicNums -> StateT GameState IO ()
 vwbDrawPic (Point x y) n = do
-    -- get current game state
-    gstate <- get
+  -- get current game state
+  gstate <- get
 
-    let
-        gdata          = (gameData gstate)
-        (Lump w h pxs) = (lumps gdata) !! getLumpNum n
+  let
+    gdata          = (gameData gstate)
+    (Lump w h pxs) = (lumps gdata) !! getLumpNum n
 
-    liftIO $ do
-        -- create surface with size of sprite
-        surf <- (createRGBSurfaceEndian [HWSurface] w h scrBpp) >>= displayFormat
+  liftIO $ do
+    -- create surface with size of sprite
+    surf <- (createRGBSurfaceEndian [HWSurface] w h scrBpp) >>= displayFormat
 
-        -- copy data to the surface
-        setSurfaceData surf pxs
+    -- copy data to the surface
+    setSurfaceData surf pxs
 
-        -- blit it on the screen
-        _ <- blitSurface surf Nothing (screen gstate) (Just (Rect x y w h))
+    -- blit it on the screen
+    _ <- blitSurface surf Nothing (screen gstate) (Just (Rect x y w h))
 
-        freeSurface surf
+    freeSurface surf
 
 
--- |A wrapper around the `fillRect`.
--- Similar to original Wolf's API
+-- | A wrapper around the `fillRect`.
 --
 vwbBar :: Rect -> GameColor -> StateT GameState IO ()
 vwbBar r c = do
-    -- get current game state
-    gstate <- get
+  -- get current game state
+  gstate <- get
 
-    _ <- liftIO $ fillRect (screen gstate) (Just r) (Pixel $ fromIntegral c)
-    return ()
+  _ <- liftIO $ fillRect (screen gstate) (Just r) (Pixel $ fromIntegral c)
+  return ()
 
 
--- |Draws a horizontal line with predefined width
--- @todo handle the `linewidth` parameter
+-- | Draws a horizontal line with predefined width
+-- TODO: handle the `linewidth` parameter
+--
 vlHLin :: Point -> Int -> GameColor -> StateT GameState IO ()
 vlHLin (Point x y) w c = vwbBar (Rect x y w 1) c
 
 
--- |Draws a vertical line with predefined width
--- @todo handle the `linewidth` parameter
+-- | Draws a vertical line with predefined width
+-- TODO: handle the `linewidth` parameter
+--
 vlVLin :: Point -> Int -> GameColor -> StateT GameState IO ()
 vlVLin (Point x y) h c = vwbBar (Rect x y 1 h) c
 
 
--- |A wrapper around the `vlHlin`
+-- | A wrapper around the `vlHlin`
 --
 vwbHlin :: Int -> Int -> Int -> GameColor -> StateT GameState IO ()
 vwbHlin x1 x2 y c = vlHLin (Point x1 y) (x2 - x1 + 1) c
@@ -105,36 +106,24 @@ vwbVlin :: Int -> Int -> Int -> GameColor -> StateT GameState IO ()
 vwbVlin y1 y2 x c = vlVLin (Point x y1) (y2 - y1 + 1) c
 
 
--- |Draws a point with specified color at given coordinates
+-- | Draws a point with specified color at given coordinates
 --
 vwbPlot :: Point -> GameColor -> StateT GameState IO ()
 vwbPlot (Point x y) c = return () -- @fixme fillRect x y 1 1 seems don't work
 
 
--- |
---
-fadeIn :: IO ()
-fadeIn = return ()
-
-
--- |
---
-fadeOut :: IO ()
-fadeOut = return ()
-
-
--- |Returns size of the string in pixels
+-- | Returns size of the string in pixels
 --
 vwlMeasureString :: String -> StateT GameState IO (Int, Int)
 vwlMeasureString str = do
-    gstate <- get
+  gstate <- get
 
-    let
-        gdata = gameData gstate
-        font  = startFont gdata
-        width = sum $ map (\c -> gWidth (font !! ord c)) str
+  let
+    gdata = gameData gstate
+    font  = startFont gdata
+    width = sum $ map (\c -> gWidth (font !! ord c)) str
 
-    return (width, gHeight (font !! 0)) -- we have the height for all glyphs
+  return (width, gHeight (font !! 0)) -- we have the height for all glyphs
 
 
 colorKey :: Word8
@@ -180,15 +169,16 @@ vwDrawPropString px py s = do
     freeSurface surf
 
 
--- |Copies the list of `Word8` into a surface
+-- | Copies the list of `Word8` into given surface
 --
 setSurfaceData :: Surface -> [Word8] -> IO ()
 setSurfaceData s ids = do
-    pxs <- surfaceGetPixels s
-    bracket_
-        (lockSurface s)
-        (unlockSurface s)
-        (pokeArray (castPtr pxs) ids)
+  pxs <- surfaceGetPixels s
+  bracket_
+    (lockSurface s)
+    (unlockSurface s)
+    (pokeArray (castPtr pxs) ids)
+
 
 -- | Flip surfaces and update screen
 --
@@ -196,6 +186,25 @@ updateScreen :: StateT GameState IO ()
 updateScreen = do
   gstate <- get
   liftIO $ SDL.flip $ screen gstate
+
+
+-- | Sets palette to the screen surface
+--
+vlSetPalette :: [Color] -> Int -> StateT GameState IO ()
+vlSetPalette pal start = do
+  gstate <- get
+
+  _ <- liftIO $ SDL.setColors (screen gstate) pal start
+  -- need to save recent palette since SDL doesn't have `GetPalette` function
+  put $ gstate { paletteLast = pal }
+
+
+-- | Returns active palette
+--
+vlGetPalette :: StateT GameState IO [Color]
+vlGetPalette = do
+  gstate <- get
+  return $ paletteLast gstate
 
 
 -- | Fills palette with given color
@@ -208,20 +217,20 @@ vlFillPalette c = do
     dummyColor = Color 1 1 1 -- need to be added in palette to prevent SDL error
     newPalette = (replicate (paletteSize - 1) c) ++ [dummyColor]
 
-  _ <- liftIO $ SDL.setColors (screen gstate) newPalette 0
-  return ()
+  vlSetPalette newPalette 0
 
 
 -- | Fades the current palette to the given color in the
 --   given number of steps
--- TODO
+--
 vlFadeOut :: Int -> Int -> Color -> Int -> StateT GameState IO ()
 vlFadeOut start end c@(Color r g b) steps = do
-  gstate <- get
+
+  activePal <- vlGetPalette
 
   let
     numColors  = end - start + 1
-    palSegment = take numColors (drop start $ palette gstate)
+    palSegment = take numColors (drop start activePal)
 
     changePalette :: Int -> StateT GameState IO ()
     changePalette  i | i == steps = return ()
@@ -238,29 +247,60 @@ vlFadeOut start end c@(Color r g b) steps = do
 
         pal' = map modify palSegment
 
-      _ <- liftIO $ SDL.setColors (screen gstate) pal' start
-      liftIO $ SDL.delay fadeOutTime
+      vlSetPalette pal' start
+      liftIO $ SDL.delay fadeTime
       changePalette (i + 1)
 
   changePalette 0
 
   vlFillPalette c
-  put $ gstate { screenFaded = True }
+  modify (\s -> s { screenFaded = True })
 
 
--- TODO
-vlFadeIn :: Int -> Int -> Int -> Int -> StateT GameState IO ()
-vlFadeIn a b c d = return ()
+-- | Fades current palette to given one in the
+--   given number of steps
+--
+vlFadeIn :: Int -> Int -> [Color] -> Int -> StateT GameState IO ()
+vlFadeIn start end pal steps = do
+
+  let
+    changePalette :: Int -> StateT GameState IO ()
+    changePalette i | i == steps = return ()
+    changePalette i | otherwise = do
+
+      activePal <- vlGetPalette
+
+      let
+        modify ((Color r' g' b'), idx) = Color ((+) r' . round $ deltaR * coef)
+                                               ((+) g' . round $ deltaG * coef)
+                                               ((+) b' . round $ deltaB * coef)
+          where
+            (Color r g b) = pal !! idx
+            deltaR = fromIntegral r - fromIntegral r'
+            deltaG = fromIntegral g - fromIntegral g'
+            deltaB = fromIntegral b - fromIntegral b'
+            coef   = (/) (fromIntegral i) (fromIntegral steps)
+
+      vlSetPalette (map modify (zip activePal [0..])) 0
+      liftIO $ SDL.delay fadeTime
+
+      changePalette (i + 1)
+
+  changePalette 0
+
+  vlSetPalette pal 0
+  modify (\s -> s { screenFaded = False })
 
 
--- | Fade screen out. Alias
+-- | Fade screen out. Short cut
 --
 vwFadeOut :: StateT GameState IO ()
 vwFadeOut = vlFadeOut 0 255 (Color 0 0 0) 30
 
 
--- | Fade screen in. Alias
--- TODO: add palette into 3rd arg
+-- | Fade screen in. Short cut
 --
 vwFadeIn :: StateT GameState IO ()
-vwFadeIn = vlFadeIn 0 255 0 30
+vwFadeIn = do
+  gstate <- get
+  vlFadeIn 0 255 (palette gstate) 30

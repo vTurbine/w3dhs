@@ -37,13 +37,12 @@ pg13 = do
   vwbBar (Rect 0 0 320 200) pg13BgColor
   -- display PG13 logo
   vwbDrawPic (Point 216 110) PG13PIC
---  updateScreen
 
   vwFadeIn
 
   -- userInput TickBase * 7
 
---  vwFadeOut
+  vwFadeOut
 
 
 --

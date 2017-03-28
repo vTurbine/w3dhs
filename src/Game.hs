@@ -77,6 +77,7 @@ initState = GameState { buildVariant= undefined     -- should be set on init
                       , screen      = undefined
                       , gameData    = undefined
                       , palette     = undefined
+                      , paletteLast = undefined
 
                       -- [Graphics] section
                       , screenFaded = False

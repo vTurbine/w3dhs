@@ -109,6 +109,7 @@ data GameState = GameState  { buildVariant  :: BuildVariant
                             , screenFaded   :: Bool
                             --
                             , screen        :: Surface
-                            , palette       :: [Color]
+                            , palette       :: [Color]  -- initial palette loaded from resources
+                            , paletteLast   :: [Color]  -- last palette set by `vlFillPalette`
                             , gameData      :: GameData
                             }
