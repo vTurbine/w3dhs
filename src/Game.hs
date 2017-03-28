@@ -38,6 +38,7 @@ initState = GameState { buildVariant= undefined     -- should be set on init
                       , inputAck    = False
                       , viewWidth   = 256
                       , viewHeight  = 144
+                      , fontNumber  = 0
 
                       -- gamestate data
                       -- , difficulty  = 0
@@ -117,8 +118,6 @@ updateState = do
                          then return ()
                          else delay DelayMsInt ms
         --
-        MainMenu      -> Game.Menu.mainMenu
-        MainMenuLoop  -> Game.Menu.mainMenuLoop
         RestartGame   -> Game.Loop.restartGame
         GameLoop      -> Game.Loop.gameLoop
         Pause         -> put $ gstate

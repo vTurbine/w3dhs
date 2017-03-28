@@ -84,6 +84,7 @@ data GameState = GameState  { buildVariant  :: BuildVariant
                             , inputAck      :: Bool        -- is any input event occured
                             , viewWidth     :: Int
                             , viewHeight    :: Int
+                            , fontNumber    :: Int
                             -- gamestate
                             , score         :: Int
                             , lives         :: Int

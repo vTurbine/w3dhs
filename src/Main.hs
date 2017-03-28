@@ -18,6 +18,7 @@ import Game
 import Game.Intro
 import Game.Graphics              (vwFadeOut)
 import Game.Loop                  (gameLoop)
+import Game.Menu                  (usControlPanel)
 import Game.Title                 (pg13, titleLoop)
 import Game.State
 import Resources                  (loadPalette, loadGameData)
@@ -104,6 +105,8 @@ demoLoop = do
   titleLoop
 
   -- check for debug mode
+
+  usControlPanel Nothing
 
 --  if (startgame || loadedgame)
   gameLoop

@@ -112,18 +112,36 @@ vwbPlot :: Point -> GameColor -> StateT GameState IO ()
 vwbPlot (Point x y) c = return () -- @fixme fillRect x y 1 1 seems don't work
 
 
+-- | Returns font data in accordance to the game state
+--
+getCurrentFont :: StateT GameState IO [Glyph]
+getCurrentFont = do
+  gstate <- get
+
+  let
+    idx   = fontNumber gstate
+    gdata = gameData gstate
+    f0    = startFont gdata
+    f1    = menuFont gdata
+
+  case idx of
+    0 -> return f0
+    1 -> return f1
+    _ -> undefined
+
+
 -- | Returns size of the string in pixels
 --
 vwlMeasureString :: String -> StateT GameState IO (Int, Int)
 vwlMeasureString str = do
   gstate <- get
 
-  let
-    gdata = gameData gstate
-    font  = startFont gdata
-    width = sum $ map (\c -> gWidth (font !! ord c)) str
+  f <- getCurrentFont
 
-  return (width, gHeight (font !! 0)) -- we have the height for all glyphs
+  let
+    width = sum $ map (\c -> gWidth (f !! ord c)) str
+
+  return (width, gHeight (f !! 0)) -- we have the height for all glyphs
 
 
 colorKey :: Word8
@@ -138,9 +156,10 @@ vwDrawPropString px py s = do
 
   (strW, strH) <- vwlMeasureString s
 
+  f <- getCurrentFont
+
   let
     gdata = gameData gstate
-    f     = startFont gdata -- @todo `fontNumber`
     col   = fromIntegral $ fontColor gstate
     r     = (Rect px py strW strH)   -- otput frame
     align = 8 - (strW `mod` 8)  -- no idea why but seems that surface should be 8 pxs width aligned

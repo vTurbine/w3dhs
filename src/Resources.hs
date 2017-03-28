@@ -49,6 +49,7 @@ data Glyph = Glyph  { gWidth  :: Int
 --
 data GameData = GameData    { config     :: GameConfig
                             , startFont  :: [Glyph]
+                            , menuFont   :: [Glyph]
                             , lumps      :: [Lump]
                             }
 
@@ -117,8 +118,8 @@ buildPicTable (wLo:wHi:hLo:hHi:xs) =
 
 -- @kludge rework it ASAP!
 --
-buildStartFont :: [Word8] -> [Glyph]
-buildStartFont (hLo:hHi:xs) =
+buildFont :: [Word8] -> [Glyph]
+buildFont (hLo:hHi:xs) =
     map (\(o, w) -> Glyph w h (take (w * h) . drop (o - 770) $ d)) $ zip ofs ws
     where
         ofs = map2 bytesToInt $ take (256 * 2) xs
@@ -162,9 +163,11 @@ loadGameData v = do
     dict      = Huff.loadDictionary dictCache
     heads     = Header.loadHeader hdCache
     pictable  = buildPicTable $ unpackChunk (fromEnum WL6.STRUCTPIC) dict heads grCache
-    startfont = buildStartFont $ unpackChunk (fromEnum WL6.STARTFONT) dict heads grCache
+    startfont = buildFont $ unpackChunk (fromEnum WL6.STARTFONT) dict heads grCache
+    menufont  = buildFont $ unpackChunk ((fromEnum WL6.STARTFONT) + 1) dict heads grCache
     lumps     = map (\(n, (w, h)) -> rebuildLump $ Lump w h (unpackChunk n dict heads grCache)) $ zip [3..] pictable
 
   return $ GameData config
                startfont
+               menufont
                lumps

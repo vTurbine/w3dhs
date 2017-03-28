@@ -3,7 +3,7 @@
 -}
 
 module Game.Menu
-    ( mainMenu
+    ( usControlPanel
     , mainMenuLoop
     ) where
 
@@ -18,6 +18,7 @@ import              Game.Graphics
 import              Game.State
 import              Game.Text
 import              Resources
+import              Settings
 
 
 type MenuRoutine = Int -> StateT GameState IO ()
@@ -353,26 +354,27 @@ mainMenuLoop = do
 
 -- |
 --
-usControlPanel :: Maybe SDLKey -> StateT GameState IO ()
-usControlPanel key = do
+setupControlPanel :: StateT GameState IO ()
+setupControlPanel = do
+  setFontColor (textColor, bkgdColor)
 
-    --cpCheckQuick
-    --startCPMusic MENUSONG
-
-    -- @todo handle scancode
-
-    drawMainMenu
-    -- menuFadeIn
-
-    mainMenuLoop
-
+  modify (\s -> s { fontNumber = 1
+                  , windowH    = scrHeight
+                  })
 
 -- |
 --
-mainMenu :: StateT GameState IO ()
-mainMenu = do
-    gstate <- get
+usControlPanel :: Maybe SDLKey -> StateT GameState IO ()
+usControlPanel key = do
 
-    usControlPanel Nothing
+  --cpCheckQuick
+  --startCPMusic MENUSONG
 
-    put $ gstate { nextSteps = [MainMenuLoop] }
+  setupControlPanel
+
+  -- @todo handle scancode
+
+  drawMainMenu
+  -- menuFadeIn
+
+  mainMenuLoop
