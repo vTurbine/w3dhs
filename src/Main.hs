@@ -99,7 +99,7 @@ demoLoop = do
   --startCpMusic INTROSONG
 
   -- check for `noWait`
-  showScr $ pg13
+  pg13
 
   titleLoop
 

@@ -46,7 +46,7 @@ pg13 = do
   vwFadeOut
 
 
---
+-- | Shows title pages in loop
 --
 titleLoop :: StateT GameState IO ()
 titleLoop = do
@@ -54,20 +54,35 @@ titleLoop = do
 
   -- title page
   vwbDrawPic (Point 0 0) TITLEPIC
-  updateScreen
 
---vwFadeIn
---userInput TickBase * 15
--- if -> exit
--- vwFadeOut
+  vwFadeIn
 
-  -- credits page
-  vwbDrawPic (Point 0 0) CREDITSPIC
-  updateScreen
+  titleAck <- inUserInput 3000
+  if titleAck
+     then return ()
+     else do
 
-  -- high scores
-  --
-  --
-  -- demo
+       vwFadeOut
 
--- fade out on exit
+       -- credits page
+       vwbDrawPic (Point 0 0) CREDITSPIC
+
+       vwFadeIn
+
+       creditsAck <- inUserInput 3000
+       if creditsAck
+          then return ()
+          else do
+
+            vwFadeOut
+
+            -- high scores
+            -- TODO
+
+            -- demo
+            -- TODO
+            --
+            -- check playstate
+            -- startCPMusic
+
+            titleLoop

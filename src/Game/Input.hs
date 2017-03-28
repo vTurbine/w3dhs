@@ -99,7 +99,7 @@ inAck = do
 -- | Waits for the specified delay time (in ms) or the user
 --   pressing a key or a mouse button
 --
-inUserInput :: Int -> StateT GameState IO ()
+inUserInput :: Int -> StateT GameState IO Bool
 inUserInput ms = do
 
   inStartAck
@@ -110,8 +110,12 @@ inUserInput ms = do
     where
       inUserInputHlp ts = do
         ticksLast <- liftIO $ SDL.getTicks
-        ack <- inCheckAck
 
-        if ack || (fromIntegral (ticksLast - ts) >= ms)
-          then return ()
-          else inUserInputHlp ts
+        if (fromIntegral (ticksLast - ts) >= ms)
+          then return False
+          else do
+            ack <- inCheckAck
+
+            if ack
+               then return True
+               else inUserInputHlp ts
