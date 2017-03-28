@@ -16,6 +16,7 @@ import System.Exit                (exitWith, ExitCode(..))
 import Defs
 import Game
 import Game.Intro
+import Game.Graphics              (vwFadeOut)
 import Game.Loop                  (gameLoop)
 import Game.Title                 (pg13, titleLoop)
 import Game.State
@@ -106,8 +107,9 @@ demoLoop = do
 
 --  if (startgame || loadedgame)
   gameLoop
---  fade out
+  vwFadeOut
 --  startCpMusic INTROSONG
+
   demoLoop
 
 

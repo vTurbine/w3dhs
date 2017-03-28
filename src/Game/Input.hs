@@ -4,6 +4,7 @@
 
 module Game.Input
     ( inAck
+    , inUserInput
     ) where
 
 
@@ -37,7 +38,7 @@ inCheckAck = do
   let
     akeys = activeKeys gstate
 
-  ev <- liftIO $ pollEvent
+  ev <- liftIO $ SDL.pollEvent
 
   case ev of
     Quit                        ->  do
@@ -67,12 +68,50 @@ inCheckAck = do
     _                           ->  return False -- only case when nothing happened
 
 
--- | Wait for any input
+-- | Clears the event queue
+--
+inStartAck :: StateT GameState IO ()
+inStartAck = do
+  ev <- liftIO $ SDL.pollEvent
+
+  if ev == NoEvent
+     then return ()
+     else inStartAck
+
+
+-- | Waits for any input
 --
 inAck :: StateT GameState IO ()
 inAck = do
-  ack <- inCheckAck
 
-  if ack
-     then return ()
-     else (liftIO $ SDL.delay inputAckDelay) >> inAck
+  inStartAck
+
+  inAckHlp
+    where
+      inAckHlp = do
+        ack <- inCheckAck
+
+        if ack
+          then return ()
+          else (liftIO $ SDL.delay inputAckDelay) >> inAckHlp
+
+
+-- | Waits for the specified delay time (in ms) or the user
+--   pressing a key or a mouse button
+--
+inUserInput :: Int -> StateT GameState IO ()
+inUserInput ms = do
+
+  inStartAck
+
+  ticksFirst <- liftIO $ SDL.getTicks
+
+  inUserInputHlp ticksFirst
+    where
+      inUserInputHlp ts = do
+        ticksLast <- liftIO $ SDL.getTicks
+        ack <- inCheckAck
+
+        if ack || (fromIntegral (ticksLast - ts) >= ms)
+          then return ()
+          else inUserInputHlp ts

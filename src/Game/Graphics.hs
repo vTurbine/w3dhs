@@ -39,7 +39,7 @@ paletteSize :: Int
 paletteSize = 256  -- amount of elements in palette
 
 fadeTime :: Word32
-fadeTime = 10    -- delay between fade in/out steps, ms
+fadeTime = 20    -- delay between fade in/out steps, ms
 
 getLumpNum :: GraphicNums -> Int
 getLumpNum n = fromEnum n + (12 - 3)

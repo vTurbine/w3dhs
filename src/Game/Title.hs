@@ -16,7 +16,8 @@ import              Data.Word
 
 -- Internal modules import
 import              Game.Graphics
-import              Resources.Gfxv_wl6      as WL6
+import              Game.Input          (inUserInput)
+import              Resources.Gfxv_wl6  as WL6
 import              Game.State
 import              Resources
 
@@ -40,7 +41,7 @@ pg13 = do
 
   vwFadeIn
 
-  -- userInput TickBase * 7
+  inUserInput 3000
 
   vwFadeOut
 
