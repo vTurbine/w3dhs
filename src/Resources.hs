@@ -16,6 +16,7 @@ import              Data.Word
 import              Graphics.UI.SDL
 
 -- Internal modules import
+import              Defs
 import              Resources.Configuration as Config
 import              Resources.Dictionary    as Huff
 import              Resources.Header        as Header
@@ -51,6 +52,17 @@ data GameData = GameData    { config     :: GameConfig
                             , lumps      :: [Lump]
                             }
 
+-- | Select game resource extension in accordance to the build variant
+--
+gameBinExt :: BuildVariant -> String
+gameBinExt BuildJapanDemo = ".WJ1"
+gameBinExt BuildJapan     = ".WJ6"
+gameBinExt BuildUpload    = ".WL1"
+gameBinExt BuildBeta      = ".WL3"
+gameBinExt BuildGoodTimes = ".WL6"
+gameBinExt BuildSpearDemo = ".SDM"
+gameBinExt BuildSpear     = ".SOD"
+
 
 -- |The 'loadPalette' returns a palette stored into
 -- GAMEPAL.OBJ file. Parsing handled by OMF loader.
@@ -75,10 +87,10 @@ loadSignon :: IO [Word8]
 loadSignon = OMF.findResource "_signon" (gameSrcPath ++ "OBJ/SIGNON.OBJ")
 
 
+-- | Load game configuration file
 --
---
-loadConfig :: IO GameConfig
-loadConfig = Config.readConfiguration (gameBinPath ++ "CONFIG" ++ gameBinExt)
+loadConfig :: BuildVariant -> IO GameConfig
+loadConfig v = Config.readConfiguration (gameBinPath ++ "CONFIG" ++ gameBinExt v)
 
 
 -- @todo some kinds of chunks have implicit size (see STARTTILE8M for example)
@@ -133,24 +145,26 @@ rebuildLump (Lump w h pxs) = Lump w h (shuffle pxs)
 
                 riffle ar = merge (split ar)
 
-
--- |Processes game resources and builds internal structures
+-- | Process game resources and builds internal structures
 --
-loadGameData :: IO GameData
-loadGameData = do
-    config  <- loadConfig
+loadGameData :: BuildVariant -> IO GameData
+loadGameData v = do
 
-    grCache   <- B.readFile $ gameBinPath ++ "VGAGRAPH" ++ gameBinExt
-    hdCache   <- B.readFile $ gameBinPath ++ "VGAHEAD"  ++ gameBinExt
-    dictCache <- B.readFile $ gameBinPath ++ "VGADICT"  ++ gameBinExt
+  -- load game configuration
+  config    <- loadConfig v
 
-    let
-        dict      = Huff.loadDictionary dictCache
-        heads     = Header.loadHeader hdCache
-        pictable  = buildPicTable $ unpackChunk (fromEnum WL6.STRUCTPIC) dict heads grCache
-        startfont = buildStartFont $ unpackChunk (fromEnum WL6.STARTFONT) dict heads grCache
-        lumps     = map (\(n, (w, h)) -> rebuildLump $ Lump w h (unpackChunk n dict heads grCache)) $ zip [3..] pictable
+  -- cache game data
+  grCache   <- B.readFile $ gameBinPath ++ "VGAGRAPH" ++ gameBinExt v
+  hdCache   <- B.readFile $ gameBinPath ++ "VGAHEAD"  ++ gameBinExt v
+  dictCache <- B.readFile $ gameBinPath ++ "VGADICT"  ++ gameBinExt v
 
-    return $ GameData   config
-                        startfont
-                        lumps
+  let
+    dict      = Huff.loadDictionary dictCache
+    heads     = Header.loadHeader hdCache
+    pictable  = buildPicTable $ unpackChunk (fromEnum WL6.STRUCTPIC) dict heads grCache
+    startfont = buildStartFont $ unpackChunk (fromEnum WL6.STARTFONT) dict heads grCache
+    lumps     = map (\(n, (w, h)) -> rebuildLump $ Lump w h (unpackChunk n dict heads grCache)) $ zip [3..] pictable
+
+  return $ GameData config
+               startfont
+               lumps

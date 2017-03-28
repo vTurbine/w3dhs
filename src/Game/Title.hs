@@ -4,8 +4,7 @@
 
 module Game.Title
     ( pg13
-    , titlePage
-    , creditsPage
+    , titleLoop
     ) where
 
 
@@ -19,51 +18,56 @@ import              Data.Word
 import              Game.Graphics
 import              Resources.Gfxv_wl6      as WL6
 import              Game.State
-import              Game.Text
 import              Resources
 
 
---
+pg13BgColor :: GameColor
+pg13BgColor = 0x82  -- acid blue for PG13 logo background
+
+
+-- | Display PG13 logo
 --
 pg13 :: StateT GameState IO ()
 pg13 = do
-    -- get current game state
-    gstate <- get
+  gstate <- get
 
-    -- startCPMusic INTROSONG
+  vwFadeOut
 
-    -- clear the screen
-    vwbBar (Rect 0 0 320 200) 0x82
-    -- display PG13 logo
-    vwbDrawPic (Point 216 110) PG13PIC
+  -- clear the screen
+  vwbBar (Rect 0 0 320 200) pg13BgColor
+  -- display PG13 logo
+  vwbDrawPic (Point 216 110) PG13PIC
+--  updateScreen
 
-    -- wait for a while and process to the title screens
-    put $ gstate { nextSteps = [DelayMs 3000, TitlePage] }
+  vwFadeIn
 
+  -- userInput TickBase * 7
 
---
---
-titlePage :: StateT GameState IO ()
-titlePage = do
-    -- get current game state
-    gstate <- get
-
-    -- draw the title screen
-    vwbDrawPic (Point 0 0) TITLEPIC
-
-    -- wait for input here and process to the title screens
-    put $ gstate { nextSteps = [DelayMs 3000, FadeIn, Credits] }
+--  vwFadeOut
 
 
 --
 --
-creditsPage :: StateT GameState IO ()
-creditsPage = do
-    -- get current game state
-    gstate <- get
+titleLoop :: StateT GameState IO ()
+titleLoop = do
+  gstate <- get
 
-    -- draw the intro screen
-    vwbDrawPic (Point 0 0) CREDITSPIC
+  -- title page
+  vwbDrawPic (Point 0 0) TITLEPIC
+  updateScreen
 
-    -- wait for input here and process to the title screens
-    put $ gstate { nextSteps = [DelayMsInt 3000, FadeOut, HighScores, MainMenu] }
+--vwFadeIn
+--userInput TickBase * 15
+-- if -> exit
+-- vwFadeOut
+
+  -- credits page
+  vwbDrawPic (Point 0 0) CREDITSPIC
+  updateScreen
+
+  -- high scores
+  --
+  --
+  -- demo
+
+-- fade out on exit

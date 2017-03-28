@@ -9,7 +9,7 @@ module Game.Menu
 
 
 import              Control.Monad.Trans.State
--- import              Control.Monad.Trans (liftIO)
+import              Control.Monad.Trans (liftIO)
 -- import              Data.Word
 import              Graphics.UI.SDL as SDL
 
@@ -33,6 +33,17 @@ data MenuItems  = NewGame
                 | BackToDemo
                 | Quit
                 deriving (Enum)
+
+-- Japan:
+-- episodeSelect = [1 .. 5]
+--
+-- Demo:
+-- episodeSelect = [1, 2]
+-- newEMenu = [2, 4]
+--
+-- Normal:
+-- episodeSelect = [1 .. 5]
+-- newEMenu = [2, 4, 6, 8, 10]
 
 
 -- |
@@ -168,17 +179,9 @@ mainMenu_ = [ CpItemType  { active    = True
                           , string    = "Load Game"
                           , routine   = undefined -- @todo cpLoadGame
                           }
-            , CpItemType  { active    = True
-                          , string    = "Load Game"
-                          , routine   = undefined -- @todo cpLoadGame
-                          }
             , CpItemType  { active    = False
                           , string    = "Save Game"
                           , routine   = undefined -- @todo cpSaveGame
-                          }
-            , CpItemType  { active    = True
-                          , string    = "Change View"
-                          , routine   = undefined -- @todo cpChangeView
                           }
             , CpItemType  { active    = True
                           , string    = "Change View"
@@ -263,7 +266,7 @@ handleMenu ii its r = do
         py = itemY + which * 13
 
     setTextPos (Point px py)
-    usPrint (string $ its !! which)
+    --usPrint (string $ its !! which)
 
     -- call custom routine if needed
     case r of
@@ -275,34 +278,45 @@ handleMenu ii its r = do
 
 drawMenu :: CpItemInfo -> [CpItemType] -> StateT GameState IO ()
 drawMenu item_i items = do
-    let
-        (Point x y) = pos item_i
-        px      = x + (indent item_i)
-        py      = y
+  let
+    (Point x y) = pos item_i
+    px          = x + (indent item_i)
+    py          = y
 
-    modify (\s -> s { windowX = px
-                    , printX  = px
-                    , windowY = py
-                    , printY  = py
-                    , windowW = 320
-                    , windowH = 200
-                    })
 
-    mapM_ printItem $ zip items [0..]
-        where
-            (Point _ y) = pos item_i -- @todo why redefinition?
-            printItem (i, n) = do
-                setTextColor i (curpos item_i == n)
-                modify (\s -> s { printY = y + n * 13 })
+  modify (\s -> s { windowX = px
+                  , printX  = px
+                  , windowY = py
+                  , printY  = py
+                  , windowW = 320
+                  , windowH = 200
+                  })
 
-                if active i
-                    then usPrint (string i)
-                    else do
-                        setFontColor (deactive,  bkgdColor)
-                        usPrint (string i)
-                        setFontColor (textColor, bkgdColor)
+  liftIO $ print $ length items
 
-                usPrint "\n"
+  setFontColor (textColor, bkgdColor)
+
+  mapM_ printItem $ zip items [0..]
+    where
+      (Point _ y) = pos item_i -- @todo why redefinition?
+      printItem (i, n) = do
+        setTextColor i (curpos item_i == n)
+
+        gstate <- get
+
+        if active i
+          then do
+            liftIO $ print $ string i
+            liftIO $ print $ "X: " ++ show (printX gstate)
+            liftIO $ print $ "Y: " ++ show (printY gstate)
+            usPrint $ string i
+          else do
+            setFontColor (deactive,  bkgdColor)
+            usPrint $ string i
+            setFontColor (textColor, bkgdColor)
+
+        --usPrint "\n"
+        --modify (\s -> s { printY = y + n * 13 })
 
 
 -- |

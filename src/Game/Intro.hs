@@ -15,8 +15,9 @@
 -}
 
 module Game.Intro
-    ( introScreenPre
-    , introScreenPost
+    ( signonScreen
+    , introScreen
+    , finishSignon
     ) where
 
 import          Control.Monad (forM_)
@@ -26,6 +27,7 @@ import          Graphics.UI.SDL
 
 -- Internal modules import
 import          Game.Graphics
+import          Game.Input
 import          Game.State
 import          Game.Text
 import          Resources
@@ -37,69 +39,79 @@ introEMSColor  = 0x6C
 introXMSColor  = 0x6C
 introFillColor = 14
 
+txtBgColor :: GameColor
+txtBgColor = 41  -- obtained from bg picture
 
+
+-- | Draw blank signon screen
 --
+signonScreen :: StateT GameState IO ()
+signonScreen = do
+  gstate <- get
+
+  signon <- liftIO $ loadSignon
+  -- draw background image
+  liftIO $ setSurfaceData (screen gstate) signon
+
+
+-- | Fill signon with system information
 --
-introScreenPre :: StateT GameState IO ()
-introScreenPre = do
-    -- get current game state
-    gstate <- get
+introScreen :: StateT GameState IO ()
+introScreen = do
+  -- get current game state
+  gstate <- get
 
-    signon <- liftIO loadSignon
+  -- Fill the boxes in the signon screen
 
-    -- draw the intro screen
-    --
+  -- Of course we have a lot of memory, especially the
+  -- ..Main one,
+  forM_ [0..9] (\i -> vwbBar (Rect  49 (163 - 8 * i) 6 5) introMainColor)
 
-    -- Draw background image
-    liftIO $ setSurfaceData (screen gstate) signon
+  -- EMS..,
+  forM_ [0..9] (\i -> vwbBar (Rect  89 (163 - 8 * i) 6 5) introEMSColor)
 
-    -- Fill the boxes in the signon screen
+  -- ..and XMS for sure.
+  forM_ [0..9] (\i -> vwbBar (Rect 129 (163 - 8 * i) 6 5) introXMSColor)
 
-    -- Of course we have a lot of memory, especially the
-    -- ..Main one,
-    forM_ [0..9] (\i -> vwbBar (Rect  49 (163 - 8 * i) 6 5) introMainColor)
+  -- mouse is present
+  vwbBar (Rect 164  82 12 2) introFillColor
+  -- joystick is present
+  vwbBar (Rect 164 105 12 2) introFillColor
+  -- AdLib is present
+  vwbBar (Rect 164 128 12 2) introFillColor
+  -- SoundBlaster is present
+  vwbBar (Rect 164 151 12 2) introFillColor
+  -- SoundSource is present
+  vwbBar (Rect 164 174 12 2) introFillColor
 
-    -- EMS..,
-    forM_ [0..9] (\i -> vwbBar (Rect  89 (163 - 8 * i) 6 5) introEMSColor)
 
-    -- ..and XMS for sure.
-    forM_ [0..9] (\i -> vwbBar (Rect 129 (163 - 8 * i) 6 5) introXMSColor)
-
-    -- mouse present
-    vwbBar (Rect 164  82 12 2) introFillColor
-    -- joystick present
-    vwbBar (Rect 164 105 12 2) introFillColor
-    -- AdLib present
-    vwbBar (Rect 164 128 12 2) introFillColor
-    -- SoundBlaster present
-    vwbBar (Rect 164 151 12 2) introFillColor
-    -- SoundSource present
-    vwbBar (Rect 164 174 12 2) introFillColor
-
-    -- @TODO schedule DoJukeBox
-
-    -- All is ok. Can proceed to resource loading and schedule game initialization
-    put $ gstate { nextSteps = [LoadResources, InitGame] }
-
+-- | Finish signon screen and wait for user input
 --
---
-introScreenPost :: StateT GameState IO ()
-introScreenPost = do
-    -- get current game state
-    gstate <- get
+finishSignon :: StateT GameState IO ()
+finishSignon = do
+  gstate <- get
 
-    -- clear the "One moment.." text
-    vwbBar       (Rect 0 189 300 11) 41
+  modify (\s -> s { windowX =   0 -- @todo setWindowRect ?
+                  , windowW = 320
+                  })
 
-    setFontColor (14, 4)
-    setTextPos   (Point 0 190)
+  -- clear the "One moment.." text
+  vwbBar (Rect 0 189 300 11) txtBgColor
 
-    modify (\s -> s { windowX =   0 -- @todo setWindowRect ?
-                    , windowW = 320
-                    })
+  setFontColor (14, 4)
+  setTextPos   (Point 0 190)
 
-    usCPrint "Press a key"
+  usCPrint "Press a key"
 
-    -- wait for input here and process to the title screens
-    put $ gstate { nextSteps = [WaitForInput, TitlePG13] }
+  -- TODO: check for `noWait`
+  inAck
 
+  -- clear text again
+  vwbBar (Rect 0 189 300 11) txtBgColor
+
+  setFontColor (10, 4)
+  setTextPos   (Point 0 190)
+
+  usCPrint "Working..."
+
+  setFontColor ( 0, 15)

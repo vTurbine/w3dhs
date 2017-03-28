@@ -34,6 +34,7 @@ executable w3dhs
                      , Game.Agent
                      , Game.Draw
                      , Game.Graphics
+                     , Game.Input
                      , Game.Intro
                      , Game.Menu
                      , Game.Play
@@ -42,6 +43,7 @@ executable w3dhs
                      , Game.Title
                      , Game.Loop
                      , Game
+                     , Defs
                      , SoundManager
                      , Settings
                      , Utils

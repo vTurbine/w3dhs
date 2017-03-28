@@ -1,100 +1,127 @@
 {-
- | Main module implementation.
-
--}
+ - Main module implementation.
+ -}
 
 module Main
   ( main
   ) where
 
-import          Control.Monad.Trans.State
-import          Control.Monad.Trans (liftIO)
-import          Graphics.UI.SDL as SDL
-import          System.Environment (getArgs)
-import          System.Exit
+import Control.Monad.Trans        (liftIO)
+import Control.Monad.Trans.State
+import Graphics.UI.SDL as SDL
+import System.Environment         (getArgs)
+import System.Exit                (exitWith, ExitCode(..))
 
 -- Internal modules import
-import          Game
-import          Game.State
-import          Resources
-import          Settings
+import Defs
+import Game
+import Game.Intro
+import Game.Loop                  (gameLoop)
+import Game.Title                 (pg13, titleLoop)
+import Game.State
+import Resources                  (loadPalette, loadGameData)
+import Settings
+
+
+-- | Returns build variant in accordance to cmdline arguments
+--
+getBuildVariant :: BuildVariant
+getBuildVariant = BuildUpload -- TODO
+
+
+-- | Exit to the OS
+--
+doExit :: IO ()
+doExit = SDL.quit >> exitWith ExitSuccess
 
 
 -- | Application exit function
-doExit = do
-    SDL.quit
-    exitWith ExitSuccess
+--
+quit :: String -> StateT GameState IO ()
+quit s  = do
+
+  -- writeConfig
+
+  liftIO $ putStrLn s
+  liftIO $ doExit
+
+
+-- | Flip surfaces to show the result of drawing
+--
+showScr :: StateT GameState IO () -> StateT GameState IO ()
+showScr f = do
+  f
+  gstate <- get
+  liftIO $ SDL.flip $ screen gstate
+
+
+-- | Init resources and game state
+--
+initGame :: StateT GameState IO ()
+initGame = do
+  gstate <- get
+
+  showScr $ signonScreen
+
+  -- read input
+
+
+  -- readConfig
+  --
+  gd <- liftIO $ loadGameData (buildVariant gstate)
+  modify (\s -> s { gameData = gd } )
+
+  -- doJukeBox
+  --
+
+  showScr $ introScreen
+
+  -- build tables
+  -- viewsize
+  -- red shifts
+  --
+  showScr $ finishSignon
 
 
 -- | Main loop
 --
-gameLoop :: StateT GameState IO ()
-gameLoop = do
-    gstate <- get
+demoLoop :: StateT GameState IO ()
+demoLoop = do
+  gstate <- get
 
-    let
-      akeys = activeKeys gstate
+  -- check for `noWait`
+  -- nonShareware
+  --
+  -- copyProtection
+  --
 
-    -- Save start tick
-    curr_ticks <- liftIO $ SDL.getTicks
-    ev         <- liftIO $ pollEvent
+  --startCpMusic INTROSONG
 
-    case ev of
-      Quit                        -> liftIO $ doExit
-      KeyDown (Keysym SDLK_q _ _) -> liftIO $ doExit -- @fixme fast exit
-      KeyDown (Keysym SDLK_p _ _) -> modify $ (\s -> s
-                                        { nextSteps = [Pause]
-                                        })
-      -- Set the key pressed
-      KeyDown (Keysym      k _ _) -> modify $ (\s -> s
-                                        { activeKeys = k : akeys
-                                        , inputAck   = True
-                                        })
-      -- Clear pressed key
-      KeyUp   (Keysym      k _ _) -> modify $ (\s -> s
-                                        { activeKeys = filter (/= k) akeys
-                                        , inputAck   = True
-                                        })
-      _                           -> return ()
+  -- check for `noWait`
+  showScr $ pg13
 
-    -- Set current tick counter
-    modify $ (\s -> s
-      { ticksPrev = (ticksCurr gstate)
-      , ticksCurr = curr_ticks
-      })
+  titleLoop
 
-    liftIO $ print $ "Before: " ++ show (currStep gstate)
+  -- check for debug mode
 
-    -- Process the game state machine
-    Game.updateState
+--  if (startgame || loadedgame)
+  gameLoop
+--  fade out
+--  startCpMusic INTROSONG
+  demoLoop
 
 
-    liftIO $ print $ "After: " ++ show (currStep gstate)
-
-    -- Flip the final surface
-    liftIO $ SDL.flip $ screen gstate
-
-    gstate' <- get
-
-    liftIO $ print $ "Input ack: " ++ show (inputAck gstate')
-    liftIO $ print (activeKeys gstate')
-
-    -- Reset game state
-    put $ gstate' { inputAck    = False
-                  }
-
-    liftIO $ print $ "ticksPrev: " ++ show (ticksPrev gstate')
-    liftIO $ print $ "ticksCurr: " ++ show (ticksCurr gstate')
-    liftIO $ do { ticks <- SDL.getTicks; print ticks; SDL.delay $ 5 }
-
-    gameLoop
+-- | `main` routine in original game
+--
+gameMain :: StateT GameState IO ()
+gameMain = initGame >> demoLoop >> Main.quit "Demo loop exited???"
 
 
 -- | The entrypoint of application
 --
 main :: IO ()
 main = do
-    -- @todo add cmdline params parsing like:
+    -- TODO: add cmdline params parsing like:
     -- fullscreen, SOD/Classic/Demo, Data path, etc.
     args <- getArgs
 
@@ -108,15 +135,15 @@ main = do
 
     -- Set the main palette
 
-    -- @todo Currently we have a limitation with bpp incompatibility.
+    -- TODO: Currently we have a limitation with bpp incompatibility.
     -- The VGA uses 6-6-6 scheme while SDL expected 8-8-8. Need to find
     -- a smart way to transpose the palette.
-    _ <- SDL.setColors screen pal 0 -- @todo check for result.
+    _ <- SDL.setColors screen pal 0 -- TODO: check for result
 
     -- Initialize game state and run the main loop
-    finalState <- execStateT gameLoop $
-                    Game.initState { nextSteps = [IntroBegin]
-                                   , screen    = screen
-                                   , palette   = pal
-                                   }
+    finalState <- execStateT gameMain $
+      Game.initState { buildVariant = getBuildVariant
+                     , screen       = screen
+                     , palette      = pal
+                     }
     return ()

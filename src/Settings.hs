@@ -1,5 +1,8 @@
-module Settings where
+{-
+   Project settings
+-}
 
+module Settings where
 
 -- |The width of the screen in pxs
 scrWidth :: Int
@@ -21,6 +24,3 @@ gameSrcPath = "wolf3d/WOLFSRC/" -- @todo Change in accordance to the cmdline
 gameBinPath :: FilePath
 gameBinPath = "data/" -- @todo Change in accordance to the cmdline
 
--- |The extension of the game's resources
-gameBinExt :: String
-gameBinExt = ".WL1" -- @todo Change in accordance to selected mode

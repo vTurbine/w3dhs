@@ -40,48 +40,50 @@ getTextPos = do
 --
 usPrint :: String -> StateT GameState IO ()
 usPrint str = do
-    gstate <- get
+  gstate <- get
 
-    printOne (windowX gstate) $ lines str
-        where
-            printOne w (s:[]) = do
-                (Point px py) <- getTextPos
-                vwDrawPropString px py s
+  printOne $ lines str
+    where
+      printOne     [] = return ()
+      printOne (s:ss) = do
+        (Point px py) <- getTextPos
+        vwDrawPropString px py s
 
-                modify (\s -> s { printX = printX s + w })
+        (w, h) <- vwlMeasureString s
 
-            printOne _ (s:ss) = do
-                (Point px py) <- getTextPos
-                vwDrawPropString px py s
+        liftIO $ print $ "W: " ++ (show w)
+        liftIO $ print $ "H: " ++ (show h)
+        liftIO $ print s
 
-                (w, h) <- vwlMeasureString s
-                modify (\s -> s { printX = windowX s
-                                , printY = printY s + h })
-                printOne w ss
+        modify (\s -> s { printX = windowX s
+                        , printY = printY s + h })
+        printOne ss
 
 
--- |A wrapper around the `usCPrintLine`
+-- | Prints a string in the current window.
+--   Newlines are supported
 --
 usCPrint :: String -> StateT GameState IO ()
-usCPrint = usCPrintLine
+usCPrint s = (mapM_ usCPrintLine $ lines s) >> updateScreen
 
 
--- |Prints a string centered on the current line
--- @fixme
+-- | Prints a string centered on the current line
+--   Newlines are not supported
+--
 usCPrintLine :: String -> StateT GameState IO ()
-usCPrintLine str = do
-    gstate <- get
+usCPrintLine s = do
+  gstate <- get
 
-    (w, h) <- vwlMeasureString str
+  (w, h) <- vwlMeasureString s
 
-    if w > (windowW gstate)
-        then error "usCPrintLine: string exceeds width"
-        else return ()
+  if w > (windowW gstate)
+    then error "usCPrintLine: string exceeds width"
+    else return ()
 
-    let
-        px = round $ fromIntegral ((windowX gstate) + (scrWidth - w)) / 2
-        py = printY gstate
+  let
+    px = round $ fromIntegral ((windowX gstate) + (windowW gstate - w)) / 2
+    py = printY gstate
 
-    vwDrawPropString px py str
+  vwDrawPropString px py s
 
-    put $ gstate { printY = printY gstate + h }
+  put $ gstate { printY = printY gstate + h }

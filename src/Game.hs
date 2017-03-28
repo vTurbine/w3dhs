@@ -11,8 +11,6 @@ module Game
 import Control.Monad.Trans
 import Control.Monad.Trans.State
 
-import Game.Intro
-import Game.Title
 import Game.State
 import Game.Loop
 import Game.Menu
@@ -23,7 +21,8 @@ import Resources
 -- in environment/state monad
 --
 initState :: GameState
-initState = GameState { currStep    = Empty
+initState = GameState { buildVariant= undefined     -- should be set on init
+                      , currStep    = Empty
                       , nextSteps   = [Empty]
                       , ticksPrev   = 0
                       , ticksCurr   = 0
@@ -78,6 +77,9 @@ initState = GameState { currStep    = Empty
                       , screen      = undefined
                       , gameData    = undefined
                       , palette     = undefined
+
+                      -- [Graphics] section
+                      , screenFaded = False
                       }
 
 
@@ -98,16 +100,9 @@ updateState = do
                              }
 
     case (currStep gstate) of
-        -- draw [Intro Screen]
-        IntroBegin    -> Game.Intro.introScreenPre
         -- cache game resources
-        LoadResources -> do
-                          gdata <- liftIO loadGameData
-                          put $ gstate { gameData  = gdata }
         -- initialize game tables
         InitGame      -> Game.Loop.initGame
-        -- finish the signon screen
-        IntroEnd      -> Game.Intro.introScreenPost
         --
         WaitForInput  -> if (not $ inputAck gstate)
                          then put $ gstate
@@ -121,11 +116,6 @@ updateState = do
                          then return ()
                          else delay DelayMsInt ms
         --
-        TitlePG13     -> Game.Title.pg13
-        --
-        TitlePage     -> Game.Title.titlePage
-        --
-        Credits       -> Game.Title.creditsPage
         MainMenu      -> Game.Menu.mainMenu
         MainMenuLoop  -> Game.Menu.mainMenuLoop
         RestartGame   -> Game.Loop.restartGame

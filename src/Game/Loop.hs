@@ -106,17 +106,14 @@ restartGame = do
 -- |Reset player's statistics
 --
 setupGameLevel :: StateT GameState IO ()
-setupGameLevel = do
-    gstate <- get
-
-    put $ gstate { timeCount        = 0
-                 , secretTotal      = 0
-                 , killTotal        = 0
-                 , treasureTotal    = 0
-                 , secretCount      = 0
-                 , killCount        = 0
-                 , treasureCount    = 0
-                 }
+setupGameLevel = modify (\s -> s { timeCount        = 0
+                                 , secretTotal      = 0
+                                 , killTotal        = 0
+                                 , treasureTotal    = 0
+                                 , secretCount      = 0
+                                 , killCount        = 0
+                                 , treasureCount    = 0
+                                 })
 
 
 -- |Main game cycle
@@ -128,9 +125,10 @@ gameLoop = do
     -- @todo
     -- if (loadedGame gstate)
 
+    --curr_ticks <- liftIO $ SDL.getTicks
 
     setupGameLevel
 
     playLoop
 
-    put $ gstate { nextSteps = [GameLoop] }
+    gameLoop

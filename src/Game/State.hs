@@ -3,6 +3,7 @@ module Game.State where
 import Graphics.UI.SDL
 import Data.Word
 
+import Defs
 import Resources
 
 --
@@ -64,7 +65,8 @@ data ObjType = ObjType { activ      :: ActiveType
 
 -- |Game state record definition
 --
-data GameState = GameState  { currStep      :: GameStep
+data GameState = GameState  { buildVariant  :: BuildVariant
+                            , currStep      :: GameStep
                             , nextSteps     :: [GameStep]
                             , ticksPrev     :: Word32
                             , ticksCurr     :: Word32      -- ticks passed since last iteration
@@ -103,6 +105,8 @@ data GameState = GameState  { currStep      :: GameStep
                             , startGame     :: Bool
                             , loadedGame    :: Bool
                             , inGame        :: Bool       -- Flag set by game indicating if a game is in progress
+                            -- graphics globals
+                            , screenFaded   :: Bool
                             --
                             , screen        :: Surface
                             , palette       :: [Color]

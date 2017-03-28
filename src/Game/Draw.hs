@@ -10,9 +10,11 @@ import           Control.Monad.Trans.State
 -- Internal modules import
 import           Game.State
 
+focalLength :: Int
+focalLength = 22272 -- 0x5700l
 
 vgaClearScreen :: StateT GameState IO ()
-vgaClearScreen = undefined
+vgaClearScreen = return ()
 
 wallRefresh :: StateT GameState IO ()
 wallRefresh = do
@@ -22,9 +24,21 @@ wallRefresh = do
 
     -- @TODO
     -- need to re-implement some nasty asm stuff
+    return ()
 
+-- |
+--
 drawScaleds :: StateT GameState IO ()
-drawScaleds = undefined
+drawScaleds = do
+    gstate <- get
+
+    -- place static objects
+    --
+    -- place active objects
+    --
+    -- draw from back to front
+    return ()
+
 
 drawPlayerWeapon :: StateT GameState IO ()
 drawPlayerWeapon = undefined

@@ -22,3 +22,5 @@ data Sdsmode    = Sds_Off
                 | Sds_SoundSource
                 | Sds_SoundBlaster
                 deriving (Enum, Show)
+
+startCpMusic = undefined
