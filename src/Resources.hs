@@ -20,6 +20,7 @@ import              Defs
 import              Resources.Configuration as Config
 import              Resources.Dictionary    as Huff
 import              Resources.Header        as Header
+import              Resources.Map           as Map
 import              Resources.OMF           as OMF
 import              Resources.PageFile      as PM
 import              Resources.Gfxv_wl6      as WL6
@@ -51,6 +52,7 @@ data GameData = GameData    { config     :: GameConfig
                             , startFont  :: [Glyph]
                             , menuFont   :: [Glyph]
                             , lumps      :: [Lump]
+                            , mapData    :: [MapType]
                             }
 
 -- | Select game resource extension in accordance to the build variant
@@ -158,6 +160,8 @@ loadGameData v = do
   grCache   <- B.readFile $ gameBinPath ++ "VGAGRAPH" ++ gameBinExt v
   hdCache   <- B.readFile $ gameBinPath ++ "VGAHEAD"  ++ gameBinExt v
   dictCache <- B.readFile $ gameBinPath ++ "VGADICT"  ++ gameBinExt v
+  mapHdr    <- B.readFile $ gameBinPath ++ "MAPHEAD"  ++ gameBinExt v
+  mapData   <- B.readFile $ gameBinPath ++ "GAMEMAPS" ++ gameBinExt v
 
   let
     dict      = Huff.loadDictionary dictCache
@@ -166,8 +170,12 @@ loadGameData v = do
     startfont = buildFont $ unpackChunk (fromEnum WL6.STARTFONT) dict heads grCache
     menufont  = buildFont $ unpackChunk ((fromEnum WL6.STARTFONT) + 1) dict heads grCache
     lumps     = map (\(n, (w, h)) -> rebuildLump $ Lump w h (unpackChunk n dict heads grCache)) $ zip [3..] pictable
+    maps      = Map.loadData mapData mapHdr
+
+  print maps
 
   return $ GameData config
                startfont
                menufont
                lumps
+               maps

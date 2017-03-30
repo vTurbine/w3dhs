@@ -5,7 +5,6 @@
 module Game
     ( GameState(..)
     , initState
-    , updateState
     ) where
 
 import Control.Monad.Trans
@@ -79,65 +78,6 @@ initState = GameState { buildVariant= undefined     -- should be set on init
                       , gameData    = undefined
                       , palette     = undefined
                       , paletteLast = undefined
-
                       -- [Graphics] section
                       , screenFaded = False
                       }
-
-
--- | Updates the game state
--- Implements main game FSM
--- @todo simplify to "next step"
---
-updateState :: StateT GameState IO ()
-updateState = do
-    gstate <- get
-
-    let
-      delta = (ticksCurr gstate) - (ticksPrev gstate)
-      delay e t = if delta > t
-                  then return ()
-                  else put $ gstate
-                             { nextSteps = e (t - delta) : (nextSteps gstate)
-                             }
-
-    case (currStep gstate) of
-        -- cache game resources
-        -- initialize game tables
-        InitGame      -> Game.Loop.initGame
-        --
-        WaitForInput  -> if (not $ inputAck gstate)
-                         then put $ gstate
-                                { nextSteps = WaitForInput : (nextSteps gstate)
-                                }
-                         else return ()
-        --
-        DelayMs ms    -> delay DelayMs ms
-
-        DelayMsInt ms -> if inputAck gstate
-                         then return ()
-                         else delay DelayMsInt ms
-        --
-        RestartGame   -> Game.Loop.restartGame
-        GameLoop      -> Game.Loop.gameLoop
-        Pause         -> put $ gstate
-                                { nextSteps = [Pause]
-                                }
-        _             -> return ()
-
-    -- update the state
-    gstate <- get
-
-    let
-      nsteps = nextSteps gstate
-      nstep  = head $ nsteps
-
-    -- proceed to the next step
-    put $ gstate { currStep  = nstep
-                 , nextSteps = drop 1 nsteps
-                 }
-
-
--- |
---
--- runWhen :: @todo
