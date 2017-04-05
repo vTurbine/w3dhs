@@ -52,7 +52,7 @@ data GameData = GameData    { config     :: GameConfig
                             , startFont  :: [Glyph]
                             , menuFont   :: [Glyph]
                             , lumps      :: [Lump]
-                            , mapData    :: [MapType]
+                            , mapData    :: [MapData]
                             }
 
 -- | Select game resource extension in accordance to the build variant
