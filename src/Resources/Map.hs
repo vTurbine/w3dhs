@@ -155,15 +155,16 @@ unp ls       [] = ls
 unp ls (c:t:xs) =
   case t of
     _ | t == nearTag -> if c == 0
-                           then unp (ls ++ [head xs, t]) (drop 2 xs) -- skip unsigned
-                           else unp (ls ++ (concat $ replicate (fromIntegral c) dbck)) (tail xs)
+                           then unp (ls ++ [head xs, t]) (tail xs)
+                           else unp (ls ++ take (fromIntegral c * 2) dbck) (tail xs)
       | t ==  farTag -> if c == 0
-                           then unp (ls ++ [head xs, t]) (drop 2 xs)
-                           else unp (ls ++ (concat $ replicate (fromIntegral c) dfwd)) (tail xs)
+                           then unp (ls ++ [head xs, t]) (tail xs)
+                           else unp (ls ++ take (fromIntegral c * 2) dfwd) (drop 2 xs)
       | otherwise   -> unp (ls ++ [c, t]) xs
   where
-    dbck   = take 2 $ drop ((length ls) - fromIntegral (head xs) * 2) ls
-    dfwd   = take 2 $ drop (fromIntegral (head xs) * 2) ls
+    dbck   = drop ((length ls) - (fromIntegral (head xs)) * 2) ls
+    [farLo, farHi] = take 2 xs
+    dfwd   = drop (fromIntegral (bytesToInt [farLo, farHi, 0, 0]) * 2) ls
 
 
 carmackExpand :: [Word8] -> [Word8]
@@ -184,13 +185,13 @@ getMapData md mt mft = do
     pl1dec  = rlewExpand tag . drop 2 $ carmackExpand $ bsToListOfWord8 pl1comp
     pl2dec  = rlewExpand tag . drop 2 $ carmackExpand $ bsToListOfWord8 pl2comp
 
-  (,) pl1dec []
+  (,) pl1dec pl2dec
 
 
 -- |
 --
 loadData :: B.ByteString -> B.ByteString -> [MapData]
-loadData md hdr = [MapData (mapWh $ mdsc !! 0) (getMapData md (mdsc !! 0) mft)]
+loadData md hdr = map (\d -> MapData (mapWh d) (getMapData md d mft)) mdsc
   where
     mft  = getHeader hdr
     hdrs = filter (/= 0) $ headerOffsets mft -- skip zero offsets as unused

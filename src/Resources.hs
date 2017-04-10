@@ -172,8 +172,6 @@ loadGameData v = do
     lumps     = map (\(n, (w, h)) -> rebuildLump $ Lump w h (unpackChunk n dict heads grCache)) $ zip [3..] pictable
     maps      = Map.loadData mapData mapHdr
 
-  print maps
-
   return $ GameData config
                startfont
                menufont
