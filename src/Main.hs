@@ -22,6 +22,7 @@ import Game.Menu                  (usControlPanel)
 import Game.Title                 (pg13, titleLoop)
 import Game.State
 import Resources                  (loadPalette, loadGameData)
+import Resources.Configuration    (GameConfig(..), readConfig)
 import Settings
 
 
@@ -57,11 +58,21 @@ showScr f = do
   liftIO $ SDL.flip $ screen gstate
 
 
+-- |
+--
+newViewSize :: Int -> StateT GameState IO ()
+newViewSize vs = do
+  return ()
+
+
 -- | Init resources and game state
 --
 initGame :: StateT GameState IO ()
 initGame = do
   gstate <- get
+
+  let
+    v = buildVariant gstate
 
   showScr $ signonScreen
 
@@ -69,9 +80,12 @@ initGame = do
 
 
   -- readConfig
-  --
-  gd <- liftIO $ loadGameData (buildVariant gstate)
-  modify (\s -> s { gameData = gd } )
+  cfg <- liftIO $ readConfig v
+  gd  <- liftIO $ loadGameData v
+
+  modify (\s -> s { config   = cfg
+                  , gameData = gd
+                  })
 
   -- doJukeBox
   --
@@ -79,7 +93,7 @@ initGame = do
   showScr $ introScreen
 
   -- build tables
-  -- viewsize
+  newViewSize (viewSize cfg)
   -- red shifts
   --
   showScr $ finishSignon

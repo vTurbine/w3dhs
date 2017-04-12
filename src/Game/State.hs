@@ -3,6 +3,7 @@ module Game.State where
 import Graphics.UI.SDL
 import Data.Word
 
+import Resources.Configuration
 import Defs
 import Resources
 
@@ -112,5 +113,6 @@ data GameState = GameState  { buildVariant  :: BuildVariant
                             , screen        :: Surface
                             , palette       :: [Color]  -- initial palette loaded from resources
                             , paletteLast   :: [Color]  -- last palette set by `vlFillPalette`
+                            , config        :: GameConfig
                             , gameData      :: GameData
                             }

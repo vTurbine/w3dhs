@@ -76,6 +76,7 @@ initState = GameState { buildVariant= undefined     -- should be set on init
                       , died        = undefined -- should be set in `RestartGame`
                       , screen      = undefined
                       , gameData    = undefined
+                      , config      = undefined
                       , palette     = undefined
                       , paletteLast = undefined
                       -- [Graphics] section

@@ -4,7 +4,6 @@ module Resources (
     , Lump(..)
     , loadPalette
     , loadSignon
-    , loadConfig
     , loadGameData
     , module WL6
     ) where
@@ -48,24 +47,11 @@ data Glyph = Glyph  { gWidth  :: Int
 
 --
 --
-data GameData = GameData    { config     :: GameConfig
-                            , startFont  :: [Glyph]
+data GameData = GameData    { startFont  :: [Glyph]
                             , menuFont   :: [Glyph]
                             , lumps      :: [Lump]
-                            , mapData    :: [MapData]
+                            , maps       :: [MapData]
                             }
-
--- | Select game resource extension in accordance to the build variant
---
-gameBinExt :: BuildVariant -> String
-gameBinExt BuildJapanDemo = ".WJ1"
-gameBinExt BuildJapan     = ".WJ6"
-gameBinExt BuildUpload    = ".WL1"
-gameBinExt BuildBeta      = ".WL3"
-gameBinExt BuildGoodTimes = ".WL6"
-gameBinExt BuildSpearDemo = ".SDM"
-gameBinExt BuildSpear     = ".SOD"
-
 
 -- |The 'loadPalette' returns a palette stored into
 -- GAMEPAL.OBJ file. Parsing handled by OMF loader.
@@ -88,12 +74,6 @@ loadPalette = do
 --
 loadSignon :: IO [Word8]
 loadSignon = OMF.findResource "_signon" (gameSrcPath ++ "OBJ/SIGNON.OBJ")
-
-
--- | Load game configuration file
---
-loadConfig :: BuildVariant -> IO GameConfig
-loadConfig v = Config.readConfiguration (gameBinPath ++ "CONFIG" ++ gameBinExt v)
 
 
 -- @todo some kinds of chunks have implicit size (see STARTTILE8M for example)
@@ -153,9 +133,6 @@ rebuildLump (Lump w h pxs) = Lump w h (shuffle pxs)
 loadGameData :: BuildVariant -> IO GameData
 loadGameData v = do
 
-  -- load game configuration
-  config    <- loadConfig v
-
   -- cache game data
   grCache   <- B.readFile $ gameBinPath ++ "VGAGRAPH" ++ gameBinExt v
   hdCache   <- B.readFile $ gameBinPath ++ "VGAHEAD"  ++ gameBinExt v
@@ -172,8 +149,7 @@ loadGameData v = do
     lumps     = map (\(n, (w, h)) -> rebuildLump $ Lump w h (unpackChunk n dict heads grCache)) $ zip [3..] pictable
     maps      = Map.loadData mapData mapHdr
 
-  return $ GameData config
-               startfont
-               menufont
-               lumps
-               maps
+  return $ GameData startfont
+                    menufont
+                    lumps
+                    maps

@@ -16,3 +16,13 @@ data BuildVariant = BuildBeta       -- beta test
                   deriving (Show)
 
 
+-- | Select game resource extension in accordance to the build variant
+--
+gameBinExt :: BuildVariant -> String
+gameBinExt BuildJapanDemo = ".WJ1"
+gameBinExt BuildJapan     = ".WJ6"
+gameBinExt BuildUpload    = ".WL1"
+gameBinExt BuildBeta      = ".WL3"
+gameBinExt BuildGoodTimes = ".WL6"
+gameBinExt BuildSpearDemo = ".SDM"
+gameBinExt BuildSpear     = ".SOD"

@@ -1,6 +1,6 @@
 module Resources.Configuration
     ( GameConfig(..)
-    , readConfiguration
+    , readConfig
     , writeConfiguration
     )
     where
@@ -10,6 +10,8 @@ import Data.Binary.Strict.Get
 import qualified Data.ByteString as B
 import Data.Word
 
+import Defs
+import Settings
 import SoundManager
 import Utils
 
@@ -45,6 +47,9 @@ maxButtonMouse  = 4
 maxButtonJoyst  = 4
 
 -- View size
+defViewSize :: Int
+defViewSize = 16
+
 -- Mouse adjustment
 
 data GameConfig = GameConfig { scores        :: [Score]
@@ -73,6 +78,10 @@ data Score = Score { name      :: String
                    deriving (Show)
 
 
+cfgDefault :: GameConfig
+cfgDefault = undefined
+
+
 parseScore :: Get Score
 parseScore = do
     hname <- replicateM highNameSize getWord8
@@ -88,7 +97,7 @@ parseConfig :: Get GameConfig
 parseConfig = do
     scores <- replicateM 6 parseScore
     return (GameConfig  scores
-                        Sdm_Off
+                        Sdm_Off -- FIXME
                         Smm_Off
                         Sds_Off
                         True
@@ -100,16 +109,20 @@ parseConfig = do
                         []
                         []
                         []
-                        0
+                        defViewSize
                         0)
 
+-- |
+--
+readConfig :: BuildVariant -> IO GameConfig
+readConfig v = do
+  raw <- B.readFile (gameBinPath ++ "CONFIG" ++ gameBinExt v)
+  let res = runGet parseConfig raw
+    in case res of
+      ((Right cfgUser), _) -> return cfgUser
+      ((Left        _), _) -> return cfgDefault
 
-readConfiguration :: FilePath -> IO GameConfig
-readConfiguration fname = do
-    raw <- B.readFile fname
-    let res = runGet parseConfig raw
-        in case res of
-            ((Right cfg), _) -> return cfg
-            ((Left  err), _) -> error $ "Config parse error: " ++ err
 
+-- |
+--
 writeConfiguration = undefined

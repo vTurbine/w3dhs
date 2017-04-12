@@ -20,7 +20,7 @@ import              Game.Input          (inUserInput)
 import              Resources.Gfxv_wl6  as WL6
 import              Game.State
 import              Resources
-
+import Resources.Map
 
 pg13BgColor :: GameColor
 pg13BgColor = 0x82  -- acid blue for PG13 logo background
