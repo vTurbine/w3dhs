@@ -8,6 +8,8 @@ module Game.Draw
 import           Control.Monad.Trans.State
 
 -- Internal modules import
+import           Game.Defs
+import           Game.Scale
 import           Game.State
 
 focalLength :: Int
@@ -16,15 +18,31 @@ focalLength = 22272 -- 0x5700l
 vgaClearScreen :: StateT GameState IO ()
 vgaClearScreen = return ()
 
+
+-- |
+--
+asmRefresh :: StateT GameState IO ()
+asmRefresh = do
+  return ()
+
+
+-- |
+--
+scalePost :: StateT GameState IO ()
+scalePost = do
+  return ()
+
+
+-- |
+--
 wallRefresh :: StateT GameState IO ()
 wallRefresh = do
-    gstate <- get
 
     -- calculate `midangle`, `viewx` and `viewy`
 
-    -- @TODO
-    -- need to re-implement some nasty asm stuff
-    return ()
+    asmRefresh
+    scalePost
+
 
 -- |
 --
@@ -40,8 +58,24 @@ drawScaleds = do
     return ()
 
 
+-- |
+--
 drawPlayerWeapon :: StateT GameState IO ()
-drawPlayerWeapon = undefined
+drawPlayerWeapon = do
+  gstate <- get
+
+  let
+    shapeNum = toEnum $ (fromEnum $
+                 case (weapon gstate) of
+                   Knife      -> SPR_KNIFEREADY
+                   Gun        -> SPR_PISTOLREADY
+                   MachineGun -> SPR_MACHINEGUNREADY
+                   GatlingGun -> SPR_CHAINREADY)
+               + (weaponFrame gstate)
+
+  simpleScaleShape ((viewWidth gstate) `div` 2)
+                   shapeNum
+                   ((viewHeight gstate) + 1)
 
 
 -- |The main render rountine

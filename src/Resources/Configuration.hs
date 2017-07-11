@@ -10,7 +10,7 @@ import Data.Binary.Strict.Get
 import qualified Data.ByteString as B
 import Data.Word
 
-import Defs
+import Common
 import Settings
 import SoundManager
 import Utils

@@ -13,7 +13,7 @@ import System.Environment         (getArgs)
 import System.Exit                (exitWith, ExitCode(..))
 
 -- Internal modules import
-import Defs
+import Common
 import Game
 import Game.Intro
 import Game.Graphics              (vwFadeOut)
@@ -25,6 +25,8 @@ import Resources                  (loadPalette, loadGameData)
 import Resources.Configuration    (GameConfig(..), readConfig)
 import Settings
 
+
+heightRatio = 0.5
 
 -- | Returns build variant in accordance to cmdline arguments
 --
@@ -60,9 +62,17 @@ showScr f = do
 
 -- |
 --
-newViewSize :: Int -> StateT GameState IO ()
-newViewSize vs = do
+setViewSize :: (Int, Int) -> StateT GameState IO ()
+setViewSize (w, h) = do
   return ()
+
+
+-- |
+--
+newViewSize :: Int -> StateT GameState IO ()
+newViewSize w = do
+  setViewSize (w * 16, w * 16 `div` 2 {-heightRatio-}) -- TODO
+  modify (\s -> s { viewsize = w })
 
 
 -- | Init resources and game state
@@ -123,6 +133,7 @@ demoLoop = do
   usControlPanel Nothing
 
 --  if (startgame || loadedgame)
+
   gameLoop
   vwFadeOut
 --  startCpMusic INTROSONG

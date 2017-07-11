@@ -51,10 +51,10 @@ initState = GameState { buildVariant= undefined     -- should be set on init
                                             , silverKey = False
                                             }
                       , weapon      = Knife
+                      , weaponFrame = 0
                       -- , faceframe   = 0
                       -- , attackframe = 0
                       -- , attackcount = 0
-                      -- , weaponframe = 0
                       -- , episode     = 0
                       --
                       , timeCount     = undefined -- this group should be set
@@ -64,10 +64,11 @@ initState = GameState { buildVariant= undefined     -- should be set on init
                       , treasureTotal = undefined
                       , killCount     = undefined
                       , treasureCount = undefined
+                      , viewsize      = undefined
                       --
                       -- , killx       = 0
                       -- , killy       = 0
-                      -- , victoryflag = False
+                      , victoryFlag = False
                       , godMode     = False
                       , isSpear     = False
                       , startGame   = False

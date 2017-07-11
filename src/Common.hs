@@ -2,7 +2,7 @@
   Common project definitions
 -}
 
-module Defs where
+module Common where
 
 -- | Variant of build
 --

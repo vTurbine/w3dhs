@@ -33,18 +33,20 @@ executable w3dhs
                      , Resources.Map
                      , Resources
                      , Game.Agent
+                     , Game.Defs
                      , Game.Draw
                      , Game.Graphics
                      , Game.Input
                      , Game.Intro
                      , Game.Menu
                      , Game.Play
+                     , Game.Scale
                      , Game.State
                      , Game.Text
                      , Game.Title
                      , Game.Loop
                      , Game
-                     , Defs
+                     , Common
                      , SoundManager
                      , Settings
                      , Utils

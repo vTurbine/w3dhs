@@ -3,8 +3,8 @@ module Game.State where
 import Graphics.UI.SDL
 import Data.Word
 
+import Common
 import Resources.Configuration
-import Defs
 import Resources
 
 --
@@ -93,6 +93,7 @@ data GameState = GameState  { buildVariant  :: BuildVariant
                             , ammo          :: Int
                             , keys          :: Keys
                             , weapon        :: Weapon
+                            , weaponFrame   :: Int
                             , godMode       :: Bool
                             , timeCount     :: Int
                             , secretTotal   :: Int
@@ -101,6 +102,9 @@ data GameState = GameState  { buildVariant  :: BuildVariant
                             , secretCount   :: Int
                             , killCount     :: Int
                             , treasureCount :: Int
+                            , victoryFlag   :: Bool
+                            -- WL_PLAY DEFINITIONS
+                            , viewsize      :: Int
                             -- variant configuration
                             , isSpear       :: Bool
                             , died          :: Bool

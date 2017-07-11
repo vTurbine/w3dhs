@@ -15,7 +15,7 @@ import              Data.Word
 import              Graphics.UI.SDL
 
 -- Internal modules import
-import              Defs
+import              Common
 import              Resources.Configuration as Config
 import              Resources.Dictionary    as Huff
 import              Resources.Header        as Header
