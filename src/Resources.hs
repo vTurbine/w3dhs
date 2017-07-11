@@ -51,6 +51,7 @@ data GameData = GameData    { startFont  :: [Glyph]
                             , menuFont   :: [Glyph]
                             , lumps      :: [Lump]
                             , maps       :: [MapData]
+                            , swap       :: SwapData
                             }
 
 -- |The 'loadPalette' returns a palette stored into
@@ -139,6 +140,7 @@ loadGameData v = do
   dictCache <- B.readFile $ gameBinPath ++ "VGADICT"  ++ gameBinExt v
   mapHdr    <- B.readFile $ gameBinPath ++ "MAPHEAD"  ++ gameBinExt v
   mapData   <- B.readFile $ gameBinPath ++ "GAMEMAPS" ++ gameBinExt v
+  pageData  <- B.readFile $ gameBinPath ++ "VSWAP"    ++ gameBinExt v
 
   let
     dict      = Huff.loadDictionary dictCache
@@ -146,10 +148,14 @@ loadGameData v = do
     pictable  = buildPicTable $ unpackChunk (fromEnum WL6.STRUCTPIC) dict heads grCache
     startfont = buildFont $ unpackChunk (fromEnum WL6.STARTFONT) dict heads grCache
     menufont  = buildFont $ unpackChunk ((fromEnum WL6.STARTFONT) + 1) dict heads grCache
-    lumps     = map (\(n, (w, h)) -> rebuildLump $ Lump w h (unpackChunk n dict heads grCache)) $ zip [3..] pictable
+    lumps     = map (\(n, (w, h)) -> rebuildLump $ Lump w h (unpackChunk n dict heads grCache)) $
+                    zip [3..] pictable
     maps      = Map.loadData mapData mapHdr
+    swap      = PM.loadData pageData
 
-  return $ GameData startfont
-                    menufont
-                    lumps
-                    maps
+  return $
+    GameData startfont
+             menufont
+             lumps
+             maps
+             swap
