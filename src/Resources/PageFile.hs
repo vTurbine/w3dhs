@@ -4,6 +4,7 @@
 
 module Resources.PageFile
   ( SwapData(..)
+  , CompShape(..)
   , loadData
   ) where
 
@@ -12,22 +13,35 @@ import qualified Data.ByteString as B
 import           Data.Binary.Strict.Get
 import           Data.Word
 
-import           Utils                    (encodeWord16le, bsToListOfWord8)
+import           Utils
 
 
 -- |Swap file header format definition
 --
-data FSwapHeader = FSwapHeader { chunksInFile  :: Word16
-                               , pmSpriteStart :: Word16
-                               , pmSoundStart  :: Word16
-                               , chunksOffsets :: [Word32]
-                               , chunksLengths :: [Word16]
+data FSwapHeader = FSwapHeader { chunksInFile  :: Int   -- total chunks in file
+                               , pmSpriteStart :: Int   -- first sprite chunk #
+                               , pmSoundStart  :: Int   -- first sound chunk #
+                               , chunksOffsets :: [Int] -- chunk offsets
+                               , chunksLengths :: [Int] -- chunk lengths
                                }
                                deriving (Show)
 
--- |Loaded chunks data format
+-- |Compiled shape data format
 --
-data SwapData = SwapData { swapChunks :: [[Word8]] }
+data CompShape = CompShape { leftPix   :: Int
+                           , rightPix  :: Int
+                           , dataOfs   :: [Int]
+                           , tableData :: [Int]
+                           }
+                           deriving (Show)
+
+-- |Loaded chunks data format
+-- TODO: separate chunks by sprites/sounds
+--
+data SwapData = SwapData { spriteChunks :: [CompShape]
+                         , soundChunks  :: [[Word8]]
+                         }
+                         deriving (Show)
 
 
 -- |Swap file header parser
@@ -46,11 +60,11 @@ parseSwapHeader = do
        lens <- replicateM (fromIntegral chks) getWord16le
 
        return $
-         FSwapHeader chks
-                     spst
-                     snst
-                     ofts
-                     lens
+         FSwapHeader (fromIntegral chks)
+                     (fromIntegral spst)
+                     (fromIntegral snst)
+                     (map fromIntegral ofts)
+                     (map fromIntegral lens)
 
 
 -- |Swap file parser runner
@@ -63,11 +77,48 @@ getSwapHeader raw = do
          ((Left  err), _) -> error "Swap: unable to parse file"
 
 
+-- |Takes a sprite data from `bs` bytestream and
+--  fills `CompShape` structure
+--
+parseSprite :: Get CompShape
+parseSprite = do
+  e <- isEmpty
+  if e
+     then error "Swap: sprite data is empty"
+     else do
+       lft <- getWord16le
+       rgt <- getWord16le
+       dof <- replicateM 64 getWord16le
+       dat <- getWord8Remain
+
+       return $
+         CompShape (fromIntegral lft)
+                   (fromIntegral rgt)
+                   (map fromIntegral dof)
+                   (map fromIntegral dat)
+
+
+-- |Sprite parser runner
+--
+getSprite :: B.ByteString -> (Int, Int) -> CompShape
+getSprite raw (o, l) = do
+  let res = runGet parseSprite (B.take l $ B.drop o raw)
+    in case res of
+         ((Right  cs), _) -> cs
+         ((Left  err), _) -> error "Swap: unable to parse sprite data"
+
+
 -- |File loader interface implementation
 --
 loadData :: B.ByteString -> SwapData
-loadData bs  = SwapData (map bsToListOfWord8 chks)
+loadData bs  = SwapData sprites
+                        sounds
   where
-    shdr = getSwapHeader bs
-    chks = map (\(o, l) -> B.take (fromIntegral l) . B.drop (fromIntegral o) $ bs) $
-               zip (chunksOffsets shdr) (chunksLengths shdr)
+    header      = getSwapHeader bs
+    ofsSprites  = pmSpriteStart header
+    ofsSounds   = pmSoundStart header
+    numSprites  = ofsSounds - ofsSprites
+    numSounds   = length (chunksOffsets header) - (ofsSprites + numSprites)
+    sprites     = map (getSprite bs) $
+                      zip (chunksOffsets header) (chunksLengths header)
+    sounds      = [] -- @TODO

@@ -5,6 +5,7 @@ module Utils
     , bsToListOfWord16
     , bsToListOfWord8
     , encodeWord16le
+    , getWord8Remain
     ) where
 
 import            Data.Binary.Strict.Get
@@ -38,38 +39,20 @@ ltoa10 n
 --
 bsToListOfWord16 :: B.ByteString -> [Word16]
 bsToListOfWord16 bs = do
-  let res = runGet fconv bs
+  let res = runGet getWord16leRemain bs
     in case res of
          (Right ls, _) -> ls
          (Left err, _) -> error $ "Utils: unable to construct list : " ++ (show $ B.length bs)
-    where
-      fconv :: Get [Word16]
-      fconv = do
-        e <- isEmpty
-        if e then return []
-             else do
-               w <- getWord16le
-               r <- fconv
-               return $ w : r
 
 
 -- | Converts BS into list of `Word16`
 --
 bsToListOfWord8 :: B.ByteString -> [Word8]
 bsToListOfWord8 bs = do
-  let res = runGet fconv bs
+  let res = runGet getWord8Remain bs
     in case res of
          (Right ls, _) -> ls
          (Left err, _) -> error $ "Utils: unable to construct list : " ++ (show $ B.length bs)
-    where
-      fconv :: Get [Word8]
-      fconv = do
-        e <- isEmpty
-        if e then return []
-             else do
-               w <- getWord8
-               r <- fconv
-               return $ w : r
 
 
 -- | Converts a `Word16` into two `Word8`
@@ -77,3 +60,29 @@ bsToListOfWord8 bs = do
 encodeWord16le :: Word16 -> (Word8, Word8)
 encodeWord16le x = flip (,) (fromIntegral $ (x .&. 0x00ff))
                             (fromIntegral $ (x .&. 0xff00) `shiftR` 8)
+
+-- |Consumes parser's input to the end by `Word16le`
+--
+getWord16leRemain :: Get [Word16]
+getWord16leRemain = do
+  e <- isEmpty
+  if e
+     then return []
+     else do
+       b  <- getWord16le
+       bs <- getWord16leRemain
+       return $
+         (b : bs)
+
+-- |Consumes parser's input to the end by `Word8`
+--
+getWord8Remain :: Get [Word8]
+getWord8Remain = do
+  e <- isEmpty
+  if e
+     then return []
+     else do
+       b  <- getWord8
+       bs <- getWord8Remain
+       return $
+         (b : bs)
